@@ -1,30 +1,3 @@
-/*
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-int main() {
-    int num1, num2;
-    char operacion;
-    char cadena[]="23 + 43"; // Cadena de entrada
-    char *datos[3];    
-    int i = 0; // iniciar el contador de tokens
-    char *token = strtok(cadena, " "); // Usamos el espacio como delimitadores
-
-    while (token != NULL) {
-        datos[i] = token; // Guardamos el token en el arreglo
-        printf("Token %d: %s\n", i, token); // Imprimimos el token
-        token = strtok(NULL, " "); // Siguientes llamadas con NULL, NULL hace que se use la misma direccion que antes
-        i++;
-    }
-    printf("Los tokens son: ");
-    num1 = atoi(datos[0]);
-    operacion = datos[1][0];
-    num2 = atoi(datos[2]);
-
-    printf("%d %c %d\n", num1, operacion, num2);
-return 0;
-}
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +7,7 @@ int separar_cadena(char *cadena,  float *num1, float *num2, char *operacion){
     int i = 0; // iniciar el contador de tokens
     char *token = strtok(cadena, " "); // obtenemos el primer token
 
-    while (token != NULL && i < 3) { // i < 3 para evitar desbordamiento 
+    while (token != NULL && i < 3 ) { // i < 3 para evitar desbordamiento 
         datos[i] = token; // Guardamos el token en el arreglo
         token = strtok(NULL, " "); // Siguientes llamadas con NULL, NULL hace que se use la misma direccion que antes
         i++;
@@ -59,7 +32,7 @@ int main() {
     char operacion;
     char cadena[100]; // Cadena de entrada
    
-   printf("Ingrese la operación en el siguiente formato:\nsuma: 'a + b'\nproducto: 'a * b'\nexponente: 'a ^ b'\nraíz cuadrada: 'v b': ");
+   printf("Ingrese la operación en el siguiente formato:\nsuma: 'a + b'\nproducto: 'a * b'\nexponente: 'a ^ b'\nraíz cuadrada: 'v a': ");
     do
     {
     fgets(cadena, sizeof(cadena), stdin);
