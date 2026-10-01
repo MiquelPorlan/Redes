@@ -102,7 +102,7 @@ int Calculadora() {
     return 0;
 }
 
-int main() {
+/*int main() {
     int opcion=1;
     while (opcion!=0) {
         // menu de opciones
@@ -124,5 +124,6 @@ int main() {
     }
     return 0;
 }
+    */
 
 
