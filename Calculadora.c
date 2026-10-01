@@ -63,7 +63,7 @@ int separar_cadena(char *cadena,  float *num1, float *num2, char *operacion){
         *operacion = datos[0][0];
         *num2 = 0;
     }else {
-        printf("Error, vuelve a enviar la operacion en el formato correcto\n");
+        printf("Error, Torna a enviar les dades en el format correcte\n");
         return 0;
     }
     return 1;
@@ -74,29 +74,29 @@ int Calculadora() {
     char operacion;
     char cadena[100]; // Cadena de entrada
 
-    printf("Ingrese la operación en el siguiente formato:\nsuma: 'a + b'\nproducto: 'a * b'\nexponente: 'a ^ b'\nraíz cuadrada: 'v a': ");
+    printf("Introdueix l'operaco en el format correcte\nsuma: 'a + b'\nproducte: 'a * b'\nexponent: 'a ^ b'\narrel quadrada: 'v a': ");
     fgets(cadena, sizeof(cadena), stdin);
 
     separar_cadena(cadena, &num1, &num2, &operacion);
     switch (detectar_operacion(operacion)) {
         case 1:
-            printf("Resultado: %.2f\n", suma(num1, num2));
+            printf("Resultat: %.2f\n", suma(num1, num2));
             break;
         case 2:
-            printf("Resultado: %.2f\n", producto(num1, num2));
+            printf("Resultat: %.2f\n", producto(num1, num2));
             break;
         case 3:
-            printf("Resultado: %.2f\n", exponente(num1, (int)num2));
+            printf("Resultat: %.2f\n", exponente(num1, (int)num2));
             break;
         case 4:
             if (!raiz_cuadrada(num1)) {
-                printf("Error: No se puede calcular la raíz cuadrada de un número negativo.\n");
+                printf("Error: No es pot calcula l'arrel.\n");
             } else {
-                printf("Resultado: %.2f\n", raiz_cuadrada(num1));
+                printf("Resultat: %.2f\n", raiz_cuadrada(num1));
             }
             break;
         default:
-            printf("Operación no reconocida.\n");
+            printf("Operacio no reconeguda.\n");
     }
 
     return 0;
@@ -107,8 +107,8 @@ int main() {
     while (opcion!=0) {
         // menu de opciones
         printf("=== CALCULADORA ===\n");
-        printf("1. Realizar operación\n");
-        printf("0. Salir\n");
+        printf("1. Realitzar operacio\n");
+        printf("0. Sortir\n");
         scanf("%d", &opcion);
         switch (opcion) {
             case 1:
@@ -116,10 +116,10 @@ int main() {
                 Calculadora();
                 break;
             case 0:
-                printf("Saliendo de la calculadora...\n");
+                printf("Sortint de la calculadora...\n");
                 break;
             default:
-                printf("Opción no válida. Intente de nuevo.\n");
+                printf("Opcio no valida. Intente de nou.\n");
         }    
     }
     return 0;
