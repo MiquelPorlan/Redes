@@ -99,12 +99,16 @@ int main(int argc, char *argv[]) {
 
 			// Aquí haureu d'implementar l'anàlisi de la cadena rebuda per saber l'operació,
 			// i si n'hi ha els arguments, executar-la i tornar el(s) resultat(s)
+			printf("operacion %s = (PID: %d)\n", buffer, getpid());
 			float resultat = Calculadora(buffer);	// Crida a la funció Calculadora() amb la cadena rebuda com a argument
+			printf("%.2f (PID: %d)\n", resultat, getpid());
+			
+			
 			// A continuació hi ha el codi corresponent a l'opció d'Enviar missatge, amb el retorn d'una cadena fixa,
 			// i la de Sortida de la connexió/bucle si és el cas.
 			// Modifiqueu la cadena de retorn per tal que sigui la que diu l'enunciat.
 
-			printf("Operacion: %s = %f (PID: %d)\n", buffer, resultat, getpid());
+			
 
 			// Comprovar si el client vol tancar la connexió
 			if (strcmp(buffer, "EXIT") == 0) {
