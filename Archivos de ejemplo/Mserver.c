@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
 			// i la de Sortida de la connexió/bucle si és el cas.
 			// Modifiqueu la cadena de retorn per tal que sigui la que diu l'enunciat.
 
-			printf("Missatge rebut del client (PID: %d): %s\n", getpid(), buffer);
+			printf("Operacion: %s = %f (PID: %d)\n", buffer, resultat, getpid());
 
 			// Comprovar si el client vol tancar la connexió
 			if (strcmp(buffer, "EXIT") == 0) {
@@ -111,8 +111,9 @@ int main(int argc, char *argv[]) {
 				send(new_socket, "Connexió tancada\n", strlen("Connexió tancada\n"), 0);
 				break;	// Sortir del bucle
 			} else {
-				Out = "Resultat: "+resultat;
-				send(new_socket, Out, strlen("Missatge rebut\n"), 0);
+				char Out[256];
+				sprintf(Out, "Resultat: %f", resultat);
+				send(new_socket, Out, strlen(Out), 0);
 			}
 		}
 
