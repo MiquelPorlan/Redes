@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
 
 			// Aquí haureu d'implementar l'anàlisi de la cadena rebuda per saber l'operació,
 			// i si n'hi ha els arguments, executar-la i tornar el(s) resultat(s)
-			printf("operacion %s = (PID: %d)\n", buffer, getpid());
+			printf("operacion %s = ", buffer);
 			float resultat = Calculadora(buffer);	// Crida a la funció Calculadora() amb la cadena rebuda com a argument
 			printf("%.2f (PID: %d)\n", resultat, getpid());
 			
