@@ -69,7 +69,7 @@ int separar_cadena(char *cadena,  float *num1, float *num2, char *operacion){
     return 1;
 }
 
-int Calculadora(char *cadena) {
+float Calculadora(char *cadena) {
     float num1, num2,res;
     char operacion;
 /*
