@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include "Calculadora.c"
 
 #define DEFAULT_PORT 8080
 #define BUFFER_SIZE 1024
