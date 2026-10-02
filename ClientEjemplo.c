@@ -1,15 +1,30 @@
-// client.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <errno.h>
-#include "Calculadora.c"
 
 #define DEFAULT_PORT 8080
 #define DEFAULT_DOMAIN "localhost"
 #define BUFFER_SIZE 1024
+
+void enviarDatos(int sock, char *cadena,char *buffer) {
+	// Enviar missatge al servidor
+	// Afegiu control d'errors
+	// Afegiu comentari explicant els arguments
+
+    send(sock, cadena, strlen(cadena), 0);
+    
+    // Llegir resposta del servidor
+	// Afegiu un control d'errors al recv()
+	// Afegiu comentari explicant què fa i per què s'utilitza memset
+	// Afegiu comentari explicant els arguments de la crida a recv()
+    
+	memset(buffer, 0, BUFFER_SIZE);
+	recv(sock, buffer, BUFFER_SIZE,0);
+	printf("Resposta del servidor: %s\n", buffer);
+}
 
 int main(int argc, char *argv[]) {
 	int sock = 0;
@@ -99,34 +114,11 @@ int main(int argc, char *argv[]) {
 		switch (option)
 		{
 		case 1:
-		case 6:
-			if (option==1){
-				printf("Introdueix el missatge a enviar ('EXIT' per tancar el servidor i sortir): ");
-				fgets(cadena, BUFFER_SIZE, stdin);
-				cadena[strcspn(cadena, "\n")] = '\0';  // Eliminar \n final
-			} else {
-				strcpy(cadena, "EXIT");
-			}
-
-			// Enviar missatge al servidor
-			// Afegiu control d'errors
-			// Afegiu comentari explicant els arguments
-
-			send(sock, cadena, strlen(cadena), 0);
-
-			// Llegir resposta del servidor
-			// Afegiu un control d'errors al recv()
-			// Afegiu comentari explicant què fa i per què s'utilitza memset
-			// Afegiu comentari explicant els arguments de la crida a recv()
-
-			memset(buffer, 0, BUFFER_SIZE);
-			recv(sock, buffer, BUFFER_SIZE,0);
-			printf("Resposta del servidor: %s\n", buffer);
-
-			if (strcmp(cadena, "EXIT") == 0) {
-				close(sock);
-				return 0;
-			}
+            // Llegir missatge del client
+			printf("Introdueix el missatge a enviar ('EXIT' per tancar el servidor i sortir): ");
+			fgets(cadena, BUFFER_SIZE, stdin);
+			cadena[strcspn(cadena, "\n")] = '\0';  // Eliminar \n final
+            enviarDatos(sock, cadena, buffer);  // Enviar missatge al servidor
 			break;
 
 		case 2:
@@ -145,9 +137,21 @@ int main(int argc, char *argv[]) {
 			// Implementar Opció 5
 			break;
 
+        case 6:
+            // Preparar mensaje de cierre de servidor
+            strcpy(cadena, "EXIT");
+            break;
 		default:
 			printf("Opció invàlida\n");
 			break;
+		}
+
+        // cerrar conexion con el servidor
+        if (strcmp(cadena, "EXIT") == 0) {
+        enviarDatos(sock, cadena, buffer);  // Enviar missatge de tancament al servidor
+		close(sock);
+        printf("Connexió tancada. Sortint del client...\n");
+		return 0;
 		}
 	}
 
