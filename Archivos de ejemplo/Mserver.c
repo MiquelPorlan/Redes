@@ -10,12 +10,17 @@
 #define DEFAULT_PORT 8080
 #define BUFFER_SIZE 1024
 
+	typedef struct{
+		uint16_t Menu;
+		char cadena[BUFFER_SIZE];
+	} Data;
+
 int main(int argc, char *argv[]) {
 	int sock, new_socket;
 	struct sockaddr_in address;
 	int addrlen = sizeof(address);
 	char buffer[BUFFER_SIZE] = {0};
-
+	Data datos;
 	char Out[BUFFER_SIZE] = "";
 
 	int port;
@@ -92,15 +97,15 @@ int main(int argc, char *argv[]) {
 			memset(buffer, 0, BUFFER_SIZE);
 			
 			// Llegir missatge del client
-			if (recv(new_socket, buffer, BUFFER_SIZE, 0) <= 0) {
+			if (recv(new_socket, &datos, sizeof(datos), 0) <= 0) {
 				printf("Client desconnectat (PID: %d)\n", getpid());
 				break;
 			}
 
 			// Aquí haureu d'implementar l'anàlisi de la cadena rebuda per saber l'operació,
 			// i si n'hi ha els arguments, executar-la i tornar el(s) resultat(s)
-			printf("operacion %s = ", buffer);
-			float resultat = Calculadora(buffer);	// Crida a la funció Calculadora() amb la cadena rebuda com a argument
+			printf("operacion %d = ", datos.Menu);
+			float resultat = Calculadora(datos.cadena);	// Crida a la funció Calculadora() amb la cadena rebuda com a argument
 			printf("%.2f (PID: %d)\n", resultat, getpid());
 			
 			
@@ -111,7 +116,7 @@ int main(int argc, char *argv[]) {
 			
 
 			// Comprovar si el client vol tancar la connexió
-			if (strcmp(buffer, "EXIT") == 0) {
+			if (strcmp(datos.cadena, "EXIT") == 0) {
 				printf("Tancant connexió amb el client (PID: %d)...\n", getpid());
 				send(new_socket, "Connexió tancada\n", strlen("Connexió tancada\n"), 0);
 				break;	// Sortir del bucle
