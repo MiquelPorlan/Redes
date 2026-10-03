@@ -9,12 +9,20 @@
 #define DEFAULT_DOMAIN "localhost"
 #define BUFFER_SIZE 1024
 
-void enviarDatos(int sock, char *cadena,char *buffer) {
+	typedef struct {
+		uint16_t Menu;
+		char cadena[BUFFER_SIZE];
+	} Data;
+
+void enviarDatos(int sock, Data *datos,char *buffer) {
 	// Enviar missatge al servidor
 	// Afegiu control d'errors
 	// Afegiu comentari explicant els arguments
 
-    send(sock, cadena, strlen(cadena), 0);
+    if (send(sock, datos, sizeof(*datos), 0) < 0) {
+		perror("Error en send");
+		return;
+	}
     
     // Llegir resposta del servidor
 	// Afegiu un control d'errors al recv()
@@ -29,8 +37,10 @@ void enviarDatos(int sock, char *cadena,char *buffer) {
 int main(int argc, char *argv[]) {
 	int sock = 0;
 	struct sockaddr_in serv_addr;
+
+	Data datos = {0};	
+
 	char buffer[BUFFER_SIZE] = {0};
-	char cadena[BUFFER_SIZE] = "";
 
 	char *domini;
 	int port;
@@ -59,8 +69,6 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-
-
 	// Crear el socket
 	// Afegiu comentari explicant els arguments, i de quines altres opcions hi ha
 	// per al segon d'ells (ara SOCK_STREAM)
@@ -88,8 +96,6 @@ int main(int argc, char *argv[]) {
 
 	printf("Connectat al servidor. Podeu començar a enviar missatges.\n");
 
-	int option;
-
 	while (1) {
 		memset(buffer, 0, sizeof(buffer)); // Netegem el buffer
 
@@ -108,17 +114,17 @@ int main(int argc, char *argv[]) {
 		printf("6. Sortir\n");
 		printf("Opció: ");
 
-		scanf("%d", &option);
+		scanf("%d", &datos.Menu);
 		while (getchar() != '\n');  // buida el buffer fins al salt de línia
 
-		switch (option)
+		switch (datos.Menu)
 		{
 		case 1:
             // Llegir missatge del client
 			printf("Introdueix el missatge a enviar ('EXIT' per tancar el servidor i sortir): ");
-			fgets(cadena, BUFFER_SIZE, stdin);
-			cadena[strcspn(cadena, "\n")] = '\0';  // Eliminar \n final
-            enviarDatos(sock, cadena, buffer);  // Enviar missatge al servidor
+			fgets(datos.cadena, BUFFER_SIZE, stdin);
+			datos.cadena[strcspn(datos.cadena, "\n")] = '\0';  // Eliminar \n final
+			enviarDatos(sock, &datos, buffer);
 			break;
 
 		case 2:
@@ -139,7 +145,7 @@ int main(int argc, char *argv[]) {
 
         case 6:
             // Preparar mensaje de cierre de servidor
-            strcpy(cadena, "EXIT");
+			strcpy(datos.cadena, "EXIT");
             break;
 		default:
 			printf("Opció invàlida\n");
@@ -147,8 +153,8 @@ int main(int argc, char *argv[]) {
 		}
 
         // cerrar conexion con el servidor
-        if (strcmp(cadena, "EXIT") == 0) {
-        enviarDatos(sock, cadena, buffer);  // Enviar missatge de tancament al servidor
+		if (strcmp(datos.cadena, "EXIT") == 0) {
+		enviarDatos(sock, &datos, buffer);  // Enviar missatge de tancament al servidor
 		close(sock);
         printf("Connexió tancada. Sortint del client...\n");
 		return 0;
