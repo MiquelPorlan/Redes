@@ -46,11 +46,11 @@ int detectar_operacion(char operacion){
 int separar_cadena(char *cadena,  float *num1, float *num2, char *operacion){
     char *datos[3];    
     int i = 0; // iniciar el contador de tokens
-    char *token = strtok(cadena, " "); // obtenemos el primer token
+    char *token = strtok(cadena, " \t\r\n"); // obtenemos el primer token
 
     while (token != NULL && i < 3) { // i < 3 para evitar desbordamiento 
         datos[i] = token; // Guardamos el token en el arreglo
-        token = strtok(NULL, " "); // Siguientes llamadas con NULL, NULL hace que se use la misma direccion que antes
+        token = strtok(NULL, " \t\r\n"); // Siguientes llamadas con NULL usan la misma cadena
         i++;
     }
 
