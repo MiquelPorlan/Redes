@@ -15,13 +15,18 @@
 		char cadena[BUFFER_SIZE];
 	} Data;
 
+
 int main(int argc, char *argv[]) {
 	int sock, new_socket;
 	struct sockaddr_in address;
 	int addrlen = sizeof(address);
+
 	char buffer[BUFFER_SIZE] = {0};
-	Data datos;
 	char Out[BUFFER_SIZE] = "";
+
+	Data datos;
+	float resultat;
+	char historial[3][BUFFER_SIZE/3] = {"","",""}; // Historial de las últimas 3 operaciones
 
 	int port;
 	char *endptr;
@@ -101,13 +106,43 @@ int main(int argc, char *argv[]) {
 				printf("Client desconnectat (PID: %d)\n", getpid());
 				break;
 			}
+			switch (datos.Menu)
+			{
+			case 1: //Recibir missatge del client i mostrar-lo per pantalla
+				printf("Missatge rebut del client (PID: %d): %s\n", getpid(), datos.cadena);
+				send(new_socket, "datos recibidos ", sizeof("datos recibidos "), 0);
+				break;
 
-			// Aquí haureu d'implementar l'anàlisi de la cadena rebuda per saber l'operació,
-			// i si n'hi ha els arguments, executar-la i tornar el(s) resultat(s)
-			printf("opcionu %d = ", datos.Menu);
-			printf("cadena %s\n", datos.cadena);
-			float resultat = Calculadora(datos.cadena);	// Crida a la funció Calculadora() amb la cadena rebuda com a argument
-			printf("%.2f (PID: %d)\n", resultat, getpid());
+			case 2: // recibir la operacion y devolver el resultado.
+				printf("opcion %d = ", datos.Menu);
+				printf("cadena %s\n", datos.cadena);
+				sprintf(Out, "%s", datos.cadena);
+				if (Calculadora(datos.cadena, &resultat)) {
+					printf("%.2f (PID: %d)\n", resultat, getpid());
+					sprintf(Out, "%s = %.2f", Out, resultat); //formatea el resultado para enviarlo como cadena
+					send(new_socket, Out, sizeof(Out), 0);
+				} else {
+					send(new_socket, "Error en la operación\n", strlen("Error en la operación\n"), 0);
+					sprintf(Out, "%s = Error", Out);
+				}
+				// Almacenar la operación en el historial
+				for (int i = 2; i > 0; i--) {
+					strcpy(historial[i], historial[i - 1]);
+				}	
+				strcpy(historial[0], Out);
+				break;	
+			
+			case 3: // enviar el historial de operaciones
+				sprintf(Out, "Historial:\n1. %s\n2. %s\n3. %s", historial[0], historial[1], historial[2]);
+				send(new_socket, Out, sizeof(Out), 0);
+				break;
+
+				
+			default:
+				break;
+			}
+
+
 			
 			
 			// A continuació hi ha el codi corresponent a l'opció d'Enviar missatge, amb el retorn d'una cadena fixa,
@@ -117,14 +152,10 @@ int main(int argc, char *argv[]) {
 			
 
 			// Comprovar si el client vol tancar la connexió
-			if (strcmp(datos.cadena, "EXIT") == 0) {
+			if (strcmp(datos.cadena, "EXIT") == 0 && datos.Menu == 1) {
 				printf("Tancant connexió amb el client (PID: %d)...\n", getpid());
 				send(new_socket, "Connexió tancada\n", strlen("Connexió tancada\n"), 0);
 				break;	// Sortir del bucle
-			} else {
-				char Out[256];
-				sprintf(Out, "Resultat: %f", resultat);
-				send(new_socket, Out, strlen(Out), 0);
 			}
 		}
 
