@@ -69,36 +69,41 @@ int separar_cadena(char *cadena,  float *num1, float *num2, char *operacion){
     return 1;
 }
 
-float Calculadora(char *cadena) {
+int Calculadora(char *cadena, float *resultat) {
     float num1, num2,res;
     char operacion;
 /*
     printf("Introdueix l'operaco en el format correcte\nsuma: 'a + b'\nproducte: 'a * b'\nexponent: 'a ^ b'\narrel quadrada: 'v a': ");
     fgets(cadena, sizeof(cadena), stdin);
 */
-    separar_cadena(cadena, &num1, &num2, &operacion);
-    switch (detectar_operacion(operacion)) {
-        case 1:
-            res = suma(num1, num2);
-            break;
-        case 2:
-            res = producto(num1, num2);
-            break;
-        case 3:
-            res = exponente(num1, (int)num2);
-            break;
-        case 4:
-            if (!raiz_cuadrada(num1)) {
-                printf("Error: No es pot calcula l'arrel.\n");
-            } else {
-                res = raiz_cuadrada(num1);
-            }
-            break;
-        default:
-            printf("Operacio no reconeguda.\n");
+    if (separar_cadena(cadena, &num1, &num2, &operacion)) {
+        switch (detectar_operacion(operacion)) {
+            case 1:
+                res = suma(num1, num2);
+                break;
+            case 2:
+                res = producto(num1, num2);
+                break;
+            case 3:
+                res = exponente(num1, (int)num2);
+                break;
+            case 4:
+                if (!raiz_cuadrada(num1)) {
+                    printf("Error: No es pot calcula l'arrel.\n");
+                } else {
+                    res = raiz_cuadrada(num1);
+                }
+                break;
+            default:
+                printf("Operacio no reconeguda.\n");
+        }
+        *resultat = res;
+        return 1;
+    }else {
+        return 0; // Error al separar la cadena
     }
 
-    return res;
+
 }
 
 /*int main() {
