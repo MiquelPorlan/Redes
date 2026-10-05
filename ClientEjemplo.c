@@ -14,25 +14,22 @@
 		char cadena[BUFFER_SIZE];
 	} Data;
 
-void enviarDatos(int sock, Data *datos,char *buffer) {
-	// Enviar missatge al servidor
-	// Afegiu control d'errors
-	// Afegiu comentari explicant els arguments
-
-    if (send(sock, datos, sizeof(*datos), 0) < 0) {
-		perror("Error en send");
-		return;
-	}
-    
-    // Llegir resposta del servidor
-	// Afegiu un control d'errors al recv()
-	// Afegiu comentari explicant què fa i per què s'utilitza memset
-	// Afegiu comentari explicant els arguments de la crida a recv()
-    
-	memset(buffer, 0, BUFFER_SIZE);
-	recv(sock, buffer, BUFFER_SIZE,0);
-	printf("Resposta del servidor: %s\n", buffer);
+void cerrarServidor(int sock, Data *datos) {
+	
+	strcpy(datos->cadena, "EXIT"); // Preparar mensaje de cierre de servidor
+	send(sock, datos, sizeof(*datos), 0);  // Enviar missatge de tancament al servidor
+	close(sock);
+	printf("Connexió tancada. Sortint del client...\n");
 }
+
+void limpiar(){
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
 
 int main(int argc, char *argv[]) {
 	int sock = 0;
@@ -98,7 +95,6 @@ int main(int argc, char *argv[]) {
 
 	while (1) {
 		memset(buffer, 0, sizeof(buffer)); // Netegem el buffer
-
 		// Menú principal
 		// Cal que implementeu un petit servei remot amb almenys 4 funcionalitats noves
 		// Definiu vosaltres mateixos les dades a enviar (demanar en el client, i analitzar al servidor) i rebre
@@ -107,14 +103,15 @@ int main(int argc, char *argv[]) {
 
 		printf("Menú principal:\n");
 		printf("1. Enviar missatge\n");
-		printf("2. Opció 2\n");
-		printf("3. Opció 3\n");
+		printf("2. Calcular operacion\n");
+		printf("3. historial\n");
 		printf("4. Opció 4\n");
 		printf("5. Opció 5\n");
 		printf("6. Sortir\n");
 		printf("Opció: ");
 
-		scanf("%d", &datos.Menu);
+		scanf("%hd", &datos.Menu);
+		limpiar();
 		while (getchar() != '\n');  // buida el buffer fins al salt de línia
 
 		switch (datos.Menu)
@@ -124,15 +121,20 @@ int main(int argc, char *argv[]) {
 			printf("Introdueix el missatge a enviar ('EXIT' per tancar el servidor i sortir): ");
 			fgets(datos.cadena, BUFFER_SIZE, stdin);
 			datos.cadena[strcspn(datos.cadena, "\n")] = '\0';  // Eliminar \n final
-			enviarDatos(sock, &datos, buffer);
+			if (strcmp(datos.cadena, "EXIT") == 0) {
+				cerrarServidor(sock, &datos);
+				return 0;
+			}
 			break;
 
 		case 2:
-			// Implementar Opció 2
+			printf("Introdueix l'operació a calcular \n(format: 'a + b', 'a * b', 'a ^ b', 'v a'): ");
+			fgets(datos.cadena, BUFFER_SIZE, stdin);
+			datos.cadena[strcspn(datos.cadena, "\n")] = '\0';  // Eliminar \n final
 			break;
-
 		case 3:
-			// Implementar Opció 3
+			datos.Menu = 3;
+			strcpy(datos.cadena, ""); // No cal cap dada addicional per a l'historial
 			break;
 
 		case 4:
@@ -145,20 +147,20 @@ int main(int argc, char *argv[]) {
 
         case 6:
             // Preparar mensaje de cierre de servidor
-			strcpy(datos.cadena, "EXIT");
+			cerrarServidor(sock, &datos);
+			return 0;
             break;
 		default:
 			printf("Opció invàlida\n");
 			break;
 		}
-
-        // cerrar conexion con el servidor
-		if (strcmp(datos.cadena, "EXIT") == 0) {
-		enviarDatos(sock, &datos, buffer);  // Enviar missatge de tancament al servidor
-		close(sock);
-        printf("Connexió tancada. Sortint del client...\n");
-		return 0;
+		if (datos.Menu < 1 || datos.Menu > 6) {
+			send(sock, &datos, sizeof(datos), 0);  // Enviar dades al servidor
+			recv(sock, buffer, sizeof(buffer), 0);  // Rebre resposta del servidor
+			printf("Resposta del servidor: %s\n", buffer);
 		}
+
+	
 	}
 
 	close(sock);
