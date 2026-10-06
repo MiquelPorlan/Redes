@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 			printf("Opció invàlida\n");
 			break;
 		}
-		if (datos.Menu < 1 || datos.Menu > 6) {
+		if (datos.Menu >= 1 && datos.Menu <= 6) {
 			send(sock, &datos, sizeof(datos), 0);  // Enviar dades al servidor
 			recv(sock, buffer, sizeof(buffer), 0);  // Rebre resposta del servidor
 			printf("Resposta del servidor: %s\n", buffer);
