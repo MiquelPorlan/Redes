@@ -152,16 +152,16 @@ int main(int argc, char *argv[]) {
 			
 
 			// Comprovar si el client vol tancar la connexió
-			if (strcmp(datos.cadena, "EXIT") == 0 && datos.Menu == 1) {
+			if (strcmp(datos.cadena, "EXIT") == 0 && (datos.Menu == 1 || datos.Menu == 6)) {
 				printf("Tancant connexió amb el client (PID: %d)...\n", getpid());
 				send(new_socket, "Connexió tancada\n", strlen("Connexió tancada\n"), 0);
 				break;	// Sortir del bucle
 			}
 		}
-
-		close(new_socket); // Tancar la connexió amb el client
+		break;	// Sortir del bucle principal per tancar el socket del client
+		close(new_socket);  
 	}
 
-	close(sock);
+	close(sock);// Tancar la connexió amb el client
 	return 0;
 }
