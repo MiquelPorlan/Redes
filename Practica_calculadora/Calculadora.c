@@ -46,11 +46,11 @@ int detectar_operacion(char operacion){
 int separar_cadena(char *cadena,  float *num1, float *num2, char *operacion){
     char *datos[3];    
     int i = 0; // iniciar el contador de tokens
-    char *token = strtok(cadena, " "); // obtenemos el primer token
+    char *token = strtok(cadena, " \t\r\n"); // obtenemos el primer token
 
     while (token != NULL && i < 3) { // i < 3 para evitar desbordamiento 
         datos[i] = token; // Guardamos el token en el arreglo
-        token = strtok(NULL, " "); // Siguientes llamadas con NULL, NULL hace que se use la misma direccion que antes
+        token = strtok(NULL, " \t\r\n"); // Siguientes llamadas con NULL usan la misma cadena
         i++;
     }
 
@@ -69,61 +69,38 @@ int separar_cadena(char *cadena,  float *num1, float *num2, char *operacion){
     return 1;
 }
 
-int Calculadora() {
-    float num1, num2;
+int Calculadora(char *cadena, float *resultat) {
+    float num1, num2,res;
     char operacion;
-    char cadena[100]; // Cadena de entrada
 
-    printf("Introdueix l'operaco en el format correcte\nsuma: 'a + b'\nproducte: 'a * b'\nexponent: 'a ^ b'\narrel quadrada: 'v a': ");
-    fgets(cadena, sizeof(cadena), stdin);
-
-    separar_cadena(cadena, &num1, &num2, &operacion);
-    switch (detectar_operacion(operacion)) {
-        case 1:
-            printf("Resultat: %.2f\n", suma(num1, num2));
-            break;
-        case 2:
-            printf("Resultat: %.2f\n", producto(num1, num2));
-            break;
-        case 3:
-            printf("Resultat: %.2f\n", exponente(num1, (int)num2));
-            break;
-        case 4:
-            if (!raiz_cuadrada(num1)) {
-                printf("Error: No es pot calcula l'arrel.\n");
-            } else {
-                printf("Resultat: %.2f\n", raiz_cuadrada(num1));
-            }
-            break;
-        default:
-            printf("Operacio no reconeguda.\n");
-    }
-
-    return 0;
-}
-
-/*int main() {
-    int opcion=1;
-    while (opcion!=0) {
-        // menu de opciones
-        printf("=== CALCULADORA ===\n");
-        printf("1. Realitzar operacio\n");
-        printf("0. Sortir\n");
-        scanf("%d", &opcion);
-        switch (opcion) {
+    if (separar_cadena(cadena, &num1, &num2, &operacion)) {
+        switch (detectar_operacion(operacion)) {
             case 1:
-                getchar(); // Limpiar el buffer de entrada
-                Calculadora();
+                res = suma(num1, num2);
                 break;
-            case 0:
-                printf("Sortint de la calculadora...\n");
+            case 2:
+                res = producto(num1, num2);
+                break;
+            case 3:
+                res = exponente(num1, (int)num2);
+                break;
+            case 4:
+                if (!raiz_cuadrada(num1)) {
+                    printf("Error: No es pot calcula l'arrel.\n");
+                } else {
+                    res = raiz_cuadrada(num1);
+                }
                 break;
             default:
-                printf("Opcio no valida. Intente de nou.\n");
-        }    
+                printf("Operacio no reconeguda.\n");
+        }
+        *resultat = res;
+        return 1;
+    }else {
+        return 0; // Error al separar la cadena
     }
-    return 0;
+
+
 }
-    */
 
 
