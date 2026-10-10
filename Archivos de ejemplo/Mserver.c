@@ -131,8 +131,21 @@ int main(int argc, char *argv[]) {
 				}	
 				strcpy(historial[0], Out);
 				break;	
-			
-			case 3: // enviar el historial de operaciones
+			case 3: //producto de polinomios
+				float sol[MAX_GRADO*2-1];
+				int G3;
+				out[0]=' \0';
+				productoPolinomios(datos.cadena, sol, &G3);
+				    for(int i=G1;i>=0;i--){
+						if(i>0){
+							sprintf(out+strlen(out), "%gx^%d+",x[i],i);
+						} else {
+							sprintf(out+strlen(out), "%g",x[i]);
+						}
+    				}
+				send(new_socket, Out, sizeof(Out), 0);					
+				break;
+			case 5: // enviar el historial de operaciones
 				sprintf(Out, "Historial:\n1. %s\n2. %s\n3. %s", historial[0], historial[1], historial[2]);
 				send(new_socket, Out, sizeof(Out), 0);
 				break;
