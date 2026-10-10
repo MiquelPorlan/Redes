@@ -45,20 +45,20 @@ int detectar_operacion(char operacion){
 
 int separar_cadena(char *cadena,  float *num1, float *num2, char *operacion){
     char *datos[3];    
-    int i = 0; // iniciar el contador de tokens
+    int t = 0; // iniciar el contador de tokens
     char *token = strtok(cadena, " \t\r\n"); // obtenemos el primer token
 
-    while (token != NULL && i < 3) { // i < 3 para evitar desbordamiento 
-        datos[i] = token; // Guardamos el token en el arreglo
+    while (token != NULL && t < 3) { // t < 3 para evitar desbordamiento 
+        datos[t] = token; // Guardamos el token en el arreglo
         token = strtok(NULL, " \t\r\n"); // Siguientes llamadas con NULL usan la misma cadena
-        i++;
+        t++;
     }
 
-    if (i == 3) {                       // separar los datos en num1, operacion y num2
+    if (t == 3) {                       // separar los datos en num1, operacion y num2
         *num1 = atof(datos[0]);
         *operacion = datos[1][0];
         *num2 = atof(datos[2]);
-    }else if (i == 2){
+    }else if (t == 2){
         *num1 = atof(datos[1]);
         *operacion = datos[0][0];
         *num2 = 0;
@@ -72,10 +72,7 @@ int separar_cadena(char *cadena,  float *num1, float *num2, char *operacion){
 int Calculadora(char *cadena, float *resultat) {
     float num1, num2,res;
     char operacion;
-/*
-    printf("Introdueix l'operaco en el format correcte\nsuma: 'a + b'\nproducte: 'a * b'\nexponent: 'a ^ b'\narrel quadrada: 'v a': ");
-    fgets(cadena, sizeof(cadena), stdin);
-*/
+
     if (separar_cadena(cadena, &num1, &num2, &operacion)) {
         switch (detectar_operacion(operacion)) {
             case 1:
@@ -106,28 +103,56 @@ int Calculadora(char *cadena, float *resultat) {
 
 }
 
-/*int main() {
-    int opcion=1;
-    while (opcion!=0) {
-        // menu de opciones
-        printf("=== CALCULADORA ===\n");
-        printf("1. Realitzar operacio\n");
-        printf("0. Sortir\n");
-        scanf("%d", &opcion);
-        switch (opcion) {
-            case 1:
-                getchar(); // Limpiar el buffer de entrada
-                Calculadora();
-                break;
-            case 0:
-                printf("Sortint de la calculadora...\n");
-                break;
-            default:
-                printf("Opcio no valida. Intente de nou.\n");
-        }    
+int recuperarpolinomios(char *cadena, float *x, int *G1, float *h, int *G2){
+    char *token = strtok(cadena, " \t\r\n"); // obtenemos el primer token
+
+    if (token != NULL) { //G1 y G2
+        *G1 = atoi(token); // Convertimos el primer token a entero
+        token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
+       
+        *G2 = atoi(token); // Convertimos el segundo token a entero
+        token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
     }
-    return 0;
+    for (int i = 0; i <= *G1; i++) { // Recorrer hasta G1 para llenar el array x
+        if (token != NULL) {
+            x[i] = atof(token); // Convertimos el token a float y lo almacenamos en x
+            token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
+        }
+    }
+
+    for (int i = 0; i <= *G2; i++) { // Recorrer hasta G2 para llenar el array h
+        if (token != NULL) {
+            h[i] = atof(token); // Convertimos el token a float y lo almacenamos en h
+            token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
+        }
+    }
 }
-    */
 
+void convolucionDiscreta(float x[],int G1,float h[], int G2,float y[],int G3){
+        //sumatorio
+        // x[k]*h[n-k]
+        G1+=1;
+        G2+=1;
+    for (int n=0 ; n<G3 ; n++){
+        for (int k=0 ; k<G2 ; k++){
+            if(n - k >= 0 && n - k < G2){
+                y[n]+=x[k]*h[n-k];
+            }
+        }
+    }
+    for(int l=0 ; l<G3 ; l++){
+        printf("%g\n",y[l]);
+    }
+}
 
+int productoPolinomios(char *cadena, float *y,int *G3){
+    int G1, G2, G3;
+	float x[MAX_GRADO], h[MAX_GRADO], y[MAX_GRADO*2-1];
+    if(!recuperarpolinomios(cadena, x, &G1, h, &G2)){
+        printf("Error al recuperar los polinomios.\n");
+        return 0;
+    }
+    convolucionDiscreta(x,G1,h,G2,y,&G3);
+
+return 1;
+}
