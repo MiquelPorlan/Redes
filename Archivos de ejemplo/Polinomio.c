@@ -14,6 +14,22 @@ int llenar_polinomio(float *p, int grado) {
     return 1;
 }
 
+void convolucionDiscreta(float x[],int G1,float h[], int G2,float y[]){
+    //variables vector1(v1) y vector2(v2)
+    int n,k;
+    float aux2[10];
+    float suma;
+        //sumatorio
+        // x[k]*h[k-n]
+    for (n=0,n<10,n++){
+        for (k=0,k<5,k++){
+            suma=x[k]*h[n-k];
+            aux2[k]=suma+aux2[k];
+        }
+        y[n]=aux2[k];
+    }
+}
+
 int main(void) {
     float polinomio[5];
     int grado;
@@ -35,4 +51,6 @@ int main(void) {
     }
     return 0;
 }
+
+
     
