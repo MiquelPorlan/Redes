@@ -133,6 +133,18 @@ int main(int argc, char *argv[]) {
 			datos.cadena[strcspn(datos.cadena, "\n")] = '\0';  // Eliminar \n final
 			break;
 		case 3:
+			int G1, G2;
+			float x[MAX_GRADO], h[MAX_GRADO];
+			
+			if(!obtenerPolinomio(x,&G1)){
+				return -1;
+			}
+
+			if(!obtenerPolinomio(h,&G2)){
+				return -1;
+			}
+			
+			formatearPolinomio(x, G1, h, G2, datos.cadena); // Formatear los polinomios en la cadena de datos para eviar al servidor
 
 			break;
 
