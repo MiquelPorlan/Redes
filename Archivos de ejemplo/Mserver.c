@@ -10,10 +10,10 @@
 #define DEFAULT_PORT 8080
 #define BUFFER_SIZE 1024
 
-	typedef struct{
-		uint16_t Menu;
-		char cadena[BUFFER_SIZE];
-	} Data;
+typedef struct{
+	uint16_t Menu;
+	char cadena[BUFFER_SIZE];
+} Data;
 
 
 int main(int argc, char *argv[]) {
