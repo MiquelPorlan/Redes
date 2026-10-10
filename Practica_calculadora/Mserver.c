@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 				strcpy(historial[0], Out);
 				break;	
 			
-			case 3: // enviar el historial de operaciones
+			case 5: // enviar el historial de operaciones
 				sprintf(Out, "Historial:\n1. %s\n2. %s\n3. %s", historial[0], historial[1], historial[2]);
 				send(new_socket, Out, sizeof(Out), 0);
 				break;
