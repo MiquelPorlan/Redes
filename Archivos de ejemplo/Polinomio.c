@@ -2,6 +2,21 @@
 #include <stdlib.h> 
 #include <math.h>
 
+#define MAX_GRADO 10
+
+typedef struct{
+    int grado;
+    float coeficientes[MAX_GRADO-1]; // Array para almacenar los coeficientes del polinomio
+} Polinomio;
+
+void limpiar(){
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
 int llenar_polinomio(float *p, int grado) {
     int i=0;
     for (i = grado; i >= 0; i--) {
@@ -14,42 +29,23 @@ int llenar_polinomio(float *p, int grado) {
     return 1;
 }
 
-void convolucionDiscreta(float x[],int G1,float h[], int G2,float y[]){
-    //variables vector1(v1) y vector2(v2)
-    int n,k;
-    float aux2[10];
-    float suma;
+void convolucionDiscreta(float x[],int G1,float h[], int G2,float y[],int G3){
         //sumatorio
-        // x[k]*h[k-n]
-    for (n=0,n<10,n++){
-        for (k=0,k<5,k++){
-            suma=x[k]*h[n-k];
-            aux2[k]=suma+aux2[k];
+        // x[k]*h[n-k]
+    for (int n=0 ; n<G3 ; n++){
+        for (int k=0 ; k<G2 ; k++){
+            if(n - k >= 0 && n - k < G2){
+                y[n]+=x[k]*h[n-k];
+            }
         }
-        y[n]=aux2[k];
+    }
+    for(int l=0 ; l<G3 ; l++){
+        printf("%g\n",y[l]);
     }
 }
 
 int main(void) {
-    float polinomio[5];
-    int grado;
-    printf("Ingrese el grado del polinomio: ");
-    if (scanf("%d", &grado) != 1 || grado < 0) {
-        printf("Error: el grado debe ser un entero no negativo.\n");
-        return 1;
-    }
-    if (llenar_polinomio(polinomio, grado)) {
-        printf("Polinomio ingresado correctamente.\n");
 
-        for (int i = 0; i <= grado; i++) {
-            if (polinomio[i] != 0) {
-                printf("%g*x^%d ", polinomio[i], i);
-            }
-        }  
-    } else {
-        printf("Error al ingresar el polinomio.\n");
-    }
-    return 0;
 }
 
 
