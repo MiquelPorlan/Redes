@@ -133,8 +133,7 @@ int main(int argc, char *argv[]) {
 			datos.cadena[strcspn(datos.cadena, "\n")] = '\0';  // Eliminar \n final
 			break;
 		case 3:
-			datos.Menu = 3;
-			strcpy(datos.cadena, ""); // No cal cap dada addicional per a l'historial
+
 			break;
 
 		case 4:
@@ -142,7 +141,8 @@ int main(int argc, char *argv[]) {
 			break;
 
 		case 5:
-			// Implementar Opció 5
+			datos.Menu = 5;
+			strcpy(datos.cadena, ""); // No cal cap dada addicional per a l'historial
 			break;
 
         case 6:
