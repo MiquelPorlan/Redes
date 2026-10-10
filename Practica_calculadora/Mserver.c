@@ -15,6 +15,12 @@
 		char cadena[BUFFER_SIZE];
 	} Data;
 
+void historialOperaciones(char historial[3][BUFFER_SIZE/3], char *Out) {// Almacenar la operación en el historial
+				for (int i = 2; i > 0; i--) {
+					strcpy(historial[i], historial[i - 1]);
+				}	
+				strcpy(historial[0], Out);
+}
 
 int main(int argc, char *argv[]) {
 	int sock, new_socket;
@@ -125,13 +131,30 @@ int main(int argc, char *argv[]) {
 					send(new_socket, "Error en la operación\n", strlen("Error en la operación\n"), 0);
 					sprintf(Out, "%s = Error", Out);
 				}
-				// Almacenar la operación en el historial
-				for (int i = 2; i > 0; i--) {
-					strcpy(historial[i], historial[i - 1]);
-				}	
-				strcpy(historial[0], Out);
+				historialOperaciones(historial, Out); // Almacenar la operación en el historial
 				break;	
-			
+			case 3: // recibir los polinomios formateados y operar con ellos
+				float sol[MAX_GRADO*2-1];
+				int G3;
+				out[0]=' \0';
+				if(productoPolinomios(datos.cadena, sol, &G3)){
+				    for(int i=G1;i>=0;i--){
+						if(i>0){
+							sprintf(out+strlen(out), "%gx^%d+",x[i],i);
+						} else {
+							sprintf(out+strlen(out), "%g",x[i]);
+						}
+    				}
+				}else{
+					print("Error");
+				    sprintf(out,"Error en la operación de polinomios");
+				}
+				
+				send(new_socket, Out, sizeof(Out), 0);
+				
+				// Almacenar la operación en el historial
+				historialOperaciones(historial, Out);
+				break;
 			case 5: // enviar el historial de operaciones
 				sprintf(Out, "Historial:\n1. %s\n2. %s\n3. %s", historial[0], historial[1], historial[2]);
 				send(new_socket, Out, sizeof(Out), 0);
