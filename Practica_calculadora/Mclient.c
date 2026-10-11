@@ -8,11 +8,12 @@
 #define DEFAULT_PORT 8080
 #define DEFAULT_DOMAIN "localhost"
 #define BUFFER_SIZE 1024
+#define MAX_GRADO 5
 
-	typedef struct {
-		uint16_t Menu;
-		char cadena[BUFFER_SIZE];
-	} Data;
+typedef struct {
+	uint16_t Menu;
+	char cadena[BUFFER_SIZE];
+} Data;
 
 void cerrarServidor(int sock, Data *datos) {
 	
@@ -28,6 +29,29 @@ void limpiar(){
     #else
         system("clear");
     #endif
+}
+
+int obtenerPolinomio(float *p, int *grado) {
+    scanf("%d",grado);
+    if(*grado<0 || *grado>=MAX_GRADO){
+        printf("Error: grado invalido.\n");
+        return -1;
+    }
+    for(int i=*grado;i>=0;i--){
+        printf("Ingrese el coeficiente para x^%d: ",i);
+        scanf("%f",&p[i]);
+    }
+    return 1;
+}
+
+void formatearPolinomio(float *x, int G1, float *h, int G2, char *cadena) {
+	sprintf(cadena,"%d %d", G1, G2);
+	for(int i=0;i<G1;i++){
+		sprintf(cadena + strlen(cadena), " %f", x[i]);
+	}
+	for(int i=0;i<G2;i++){
+		sprintf(cadena + strlen(cadena), " %f", h[i]);
+	}
 }
 
 
@@ -104,9 +128,9 @@ int main(int argc, char *argv[]) {
 		printf("Menú principal:\n");
 		printf("1. Enviar missatge\n");
 		printf("2. Calcular operacion\n");
-		printf("3. historial\n");
+		printf("3. Producto de polinomios\n");
 		printf("4. Opció 4\n");
-		printf("5. Opció 5\n");
+		printf("5. historial\n");
 		printf("6. Sortir\n");
 		printf("Opció: ");
 
@@ -136,10 +160,11 @@ int main(int argc, char *argv[]) {
 			int G1, G2;
 			float x[MAX_GRADO], h[MAX_GRADO];
 			
+			printf("Ingrese el grado del primer polinomio (maximo %d): ", MAX_GRADO-1);
 			if(!obtenerPolinomio(x,&G1)){
 				return -1;
 			}
-
+    		printf("Ingrese el grado del segundo polinomio (maximo %d): ", MAX_GRADO-1);
 			if(!obtenerPolinomio(h,&G2)){
 				return -1;
 			}

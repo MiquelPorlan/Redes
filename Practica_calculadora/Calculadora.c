@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#define MAX_GRADO 5
 
 float suma(float a, float b){
     return a + b;
@@ -103,4 +104,58 @@ int Calculadora(char *cadena, float *resultat) {
 
 }
 
+
+int recuperarpolinomios(char *cadena, float *x, int *G1, float *h, int *G2){
+    char *token = strtok(cadena, " \t\r\n"); // obtenemos el primer token
+
+    if (token != NULL) { //G1 y G2
+        *G1 = atoi(token); // Convertimos el primer token a entero
+        token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
+       
+        *G2 = atoi(token); // Convertimos el segundo token a entero
+        token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
+    }
+    for (int i = 0; i <= *G1; i++) { // Recorrer hasta G1 para llenar el array x
+        if (token != NULL) {
+            x[i] = atof(token); // Convertimos el token a float y lo almacenamos en x
+            token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
+        }
+    }
+
+    for (int i = 0; i <= *G2; i++) { // Recorrer hasta G2 para llenar el array h
+        if (token != NULL) {
+            h[i] = atof(token); // Convertimos el token a float y lo almacenamos en h
+            token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
+        }
+    }
+}
+
+void convolucionDiscreta(float x[],int G1,float h[], int G2,float y[],int G3){
+        //sumatorio
+        // x[k]*h[n-k]
+        G1+=1;
+        G2+=1;
+    for (int n=0 ; n<G3 ; n++){
+        for (int k=0 ; k<G2 ; k++){
+            if(n - k >= 0 && n - k < G2){
+                y[n]+=x[k]*h[n-k];
+            }
+        }
+    }
+    for(int l=0 ; l<G3 ; l++){
+        printf("%g\n",y[l]);
+    }
+}
+
+int productoPolinomios(char *cadena, float *y,int *G3){
+    int G1, G2;
+	float x[MAX_GRADO], h[MAX_GRADO];
+    if(!recuperarpolinomios(cadena, x, &G1, h, &G2)){
+        printf("Error al recuperar los polinomios.\n");
+        return 0;
+    }
+    convolucionDiscreta(x,G1,h,G2,y,*G3);
+
+return 1;
+}
 

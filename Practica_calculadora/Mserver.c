@@ -10,6 +10,7 @@
 #define DEFAULT_PORT 8080
 #define BUFFER_SIZE 1024
 
+
 	typedef struct{
 		uint16_t Menu;
 		char cadena[BUFFER_SIZE];
@@ -136,18 +137,18 @@ int main(int argc, char *argv[]) {
 			case 3: // recibir los polinomios formateados y operar con ellos
 				float sol[MAX_GRADO*2-1];
 				int G3;
-				out[0]=' \0';
+				Out[0]='\0';
 				if(productoPolinomios(datos.cadena, sol, &G3)){
-				    for(int i=G1;i>=0;i--){
+				    for(int i=G3;i>=0;i--){
 						if(i>0){
-							sprintf(out+strlen(out), "%gx^%d+",x[i],i);
+							sprintf(Out+strlen(Out), "%gx^%d+",sol[i],i);
 						} else {
-							sprintf(out+strlen(out), "%g",x[i]);
+							sprintf(Out+strlen(Out), "%g",sol[i]);
 						}
     				}
 				}else{
-					print("Error");
-				    sprintf(out,"Error en la operación de polinomios");
+					printf("Error");
+				    sprintf(Out,"Error en la operación de polinomios");
 				}
 				
 				send(new_socket, Out, sizeof(Out), 0);
