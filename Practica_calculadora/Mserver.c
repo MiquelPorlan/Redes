@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
 	char buffer[BUFFER_SIZE] = {0};
 	char Out[BUFFER_SIZE] = "";
 
-	Data datos;
+	uint16_t menu;
 	float resultat;
 	char historial[3][BUFFER_SIZE/3] = {"","",""}; // Historial de las últimas 3 operaciones
 
@@ -109,22 +109,26 @@ int main(int argc, char *argv[]) {
 			memset(buffer, 0, BUFFER_SIZE);
 			
 			// Llegir missatge del client
-			if (recv(new_socket, &datos, sizeof(datos), 0) <= 0) {
+			if (recv(new_socket, &Menu, sizeof(Menu), 0) <= 0) {
 				printf("Client desconnectat (PID: %d)\n", getpid());
 				break;
 			}
-			switch (datos.Menu)
+			switch (Menu)
 			{
 			case 1: //Recibir missatge del client i mostrar-lo per pantalla
-				printf("Missatge rebut del client (PID: %d): %s\n", getpid(), datos.cadena);
+				recv(new_socket, &buffer, sizeof(buffer), 0);
+
+				printf("Missatge rebut del client (PID: %d): %s\n", getpid(), buffer);
 				send(new_socket, "datos recibidos ", sizeof("datos recibidos "), 0);
 				break;
 
 			case 2: // recibir la operacion y devolver el resultado.
-				printf("opcion %d = ", datos.Menu);
-				printf("cadena %s\n", datos.cadena);
-				sprintf(Out, "%s", datos.cadena);
-				if (Calculadora(datos.cadena, &resultat)) {
+				recv(new_socket, &buffer, sizeof(buffer), 0);
+
+				printf("opcion %d = ", menu);
+				printf("cadena %s\n", buffer);
+				sprintf(Out, "%s", buffer);
+				if (Calculadora(buffer, &resultat)) {
 					printf("%.2f (PID: %d)\n", resultat, getpid());
 					sprintf(Out, "%s = %.2f", Out, resultat); //formatea el resultado para enviarlo como cadena
 					send(new_socket, Out, sizeof(Out), 0);
@@ -133,7 +137,9 @@ int main(int argc, char *argv[]) {
 					sprintf(Out, "%s = Error", Out);
 				}
 				historialOperaciones(historial, Out); // Almacenar la operación en el historial
-				break;	
+				break;
+				/*
+
 			case 3: // recibir los polinomios formateados y operar con ellos
 				float sol[MAX_GRADO*2-1];
 				int G3;
@@ -156,11 +162,12 @@ int main(int argc, char *argv[]) {
 				// Almacenar la operación en el historial
 				historialOperaciones(historial, Out);
 				break;
+				
+				*/
 			case 5: // enviar el historial de operaciones
 				sprintf(Out, "Historial:\n1. %s\n2. %s\n3. %s", historial[0], historial[1], historial[2]);
 				send(new_socket, Out, sizeof(Out), 0);
 				break;
-
 				
 			default:
 				break;

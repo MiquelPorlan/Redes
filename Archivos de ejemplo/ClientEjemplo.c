@@ -11,15 +11,11 @@
 #define MAX_GRADO 5
 
 
-	typedef struct {
-		uint16_t Menu;
-		char cadena[BUFFER_SIZE];
-	} Data;
 
-void cerrarServidor(int sock, Data *datos) {
-	
-	strcpy(datos->cadena, "EXIT"); // Preparar mensaje de cierre de servidor
-	send(sock, datos, sizeof(*datos), 0);  // Enviar missatge de tancament al servidor
+
+void cerrarServidor(int sock, char *cadena) {
+	strcpy(cadena, "EXIT"); // Preparar mensaje de cierre de servidor
+	send(sock, &cadena, sizeof(cadena), 0);  // Enviar missatge de tancament al servidor
 	close(sock);
 	printf("Connexió tancada. Sortint del client...\n");
 }
@@ -60,8 +56,8 @@ int main(int argc, char *argv[]) {
 	int sock = 0;
 	struct sockaddr_in serv_addr;
 
-	Data datos = {0};	
-
+	uint16_t Menu;
+	char cadena[BUFFER_SIZE];
 	char buffer[BUFFER_SIZE] = {0};
 
 	char *domini;
@@ -135,23 +131,26 @@ int main(int argc, char *argv[]) {
 		printf("6. Sortir\n");
 		printf("Opció: ");
 
-		scanf("%hd", &datos.Menu);
+		scanf("%hd", &Menu);
 		limpiar();
 		while (getchar() != '\n');  // buida el buffer fins al salt de línia
 
-		switch (datos.Menu)
+		switch (Menu)
 		{
 		case 1:
             // Llegir missatge del client
 			printf("Introdueix el missatge a enviar ('EXIT' per tancar el servidor i sortir): ");
-			fgets(datos.cadena, BUFFER_SIZE, stdin);
-			datos.cadena[strcspn(datos.cadena, "\n")] = '\0';  // Eliminar \n final
-			if (strcmp(datos.cadena, "EXIT") == 0) {
-				cerrarServidor(sock, &datos);
+			fgets(cadena, BUFFER_SIZE, stdin);
+			cadena[strcspn(cadena, "\n")] = '\0';  // Eliminar \n final
+			if (strcmp(cadena, "EXIT") == 0) {
+				cerrarServidor(sock, cadena);
 				return 0;
 			}
+			send(sock, &Menu, sizeof(uint16_t), 0);
+			send(sock, &cadena, sizeof(cadena), 0);
+			
 			break;
-
+/*
 		case 2:
 			printf("Introdueix l'operació a calcular \n(format: 'a + b', 'a * b', 'a ^ b', 'v a'): ");
 			fgets(datos.cadena, BUFFER_SIZE, stdin);
@@ -183,22 +182,22 @@ int main(int argc, char *argv[]) {
 			datos.Menu = 5;
 			strcpy(datos.cadena, ""); // No cal cap dada addicional per a l'historial
 			break;
-
+*/
         case 6:
             // Preparar mensaje de cierre de servidor
-			cerrarServidor(sock, &datos);
+			cerrarServidor(sock, cadena);
 			return 0;
             break;
 		default:
 			printf("Opció invàlida\n");
 			break;
 		}
-		if (datos.Menu >= 1 && datos.Menu <= 6) {
-			send(sock, &datos, sizeof(datos), 0);  // Enviar dades al servidor
+		
+		if (Menu >= 1 && Menu <= 6) {
 			recv(sock, buffer, sizeof(buffer), 0);  // Rebre resposta del servidor
 			printf("Resposta del servidor: %s\n", buffer);
 		}
-
+		
 	
 	}
 

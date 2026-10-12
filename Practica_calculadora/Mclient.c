@@ -10,15 +10,9 @@
 #define BUFFER_SIZE 1024
 #define MAX_GRADO 5
 
-typedef struct {
-	uint16_t Menu;
-	char cadena[BUFFER_SIZE];
-} Data;
-
-void cerrarServidor(int sock, Data *datos) {
-	
-	strcpy(datos->cadena, "EXIT"); // Preparar mensaje de cierre de servidor
-	send(sock, datos, sizeof(*datos), 0);  // Enviar missatge de tancament al servidor
+void cerrarServidor(int sock, char *cadena) {
+	strcpy(cadena, "EXIT"); // Preparar mensaje de cierre de servidor
+	send(sock, &cadena, strlen(cadena), 0);  // Enviar missatge de tancament al servidor
 	close(sock);
 	printf("Connexió tancada. Sortint del client...\n");
 }
@@ -31,7 +25,7 @@ void limpiar(){
     #endif
 }
 
-int obtenerPolinomio(float *p, int *grado) {
+int obtenerPolinomio(int sock, float *p, int *grado) {
     scanf("%d",grado);
     if(*grado<0 || *grado>=MAX_GRADO){
         printf("Error: grado invalido.\n");
@@ -44,24 +38,18 @@ int obtenerPolinomio(float *p, int *grado) {
     return 1;
 }
 
-void formatearPolinomio(float *x, int G1, float *h, int G2, char *cadena) {
-	sprintf(cadena,"%d %d", G1, G2);
-	for(int i=0;i<G1;i++){
-		sprintf(cadena + strlen(cadena), " %f", x[i]);
-	}
-	for(int i=0;i<G2;i++){
-		sprintf(cadena + strlen(cadena), " %f", h[i]);
-	}
+void enviarPolinomio(int sock, float *polinomio, int Grado){
+	int size = (Grado+1)*sizeof(float);
+	send(sock, polinomio, size, 0);
 }
-
 
 int main(int argc, char *argv[]) {
 	int sock = 0;
 	struct sockaddr_in serv_addr;
 
-	Data datos = {0};	
-
-	char buffer[BUFFER_SIZE] = {0};
+	uint16_t Menu;
+	char cadena[BUFFER_SIZE];
+	char buffer[BUFFER_SIZE];
 
 	char *domini;
 	int port;
@@ -134,42 +122,51 @@ int main(int argc, char *argv[]) {
 		printf("6. Sortir\n");
 		printf("Opció: ");
 
-		scanf("%hd", &datos.Menu);
+		scanf("%hd", &Menu);
+		send(sock, &Menu, sizeof(uint16_t), 0);
 		limpiar();
 		while (getchar() != '\n');  // buida el buffer fins al salt de línia
 
-		switch (datos.Menu)
+		switch (Menu)
 		{
 		case 1:
             // Llegir missatge del client
 			printf("Introdueix el missatge a enviar ('EXIT' per tancar el servidor i sortir): ");
-			fgets(datos.cadena, BUFFER_SIZE, stdin);
-			datos.cadena[strcspn(datos.cadena, "\n")] = '\0';  // Eliminar \n final
-			if (strcmp(datos.cadena, "EXIT") == 0) {
-				cerrarServidor(sock, &datos);
+			fgets(cadena, BUFFER_SIZE, stdin);
+			cadena[strcspn(cadena, "\n")] = '\0';  // Eliminar \n final
+			if (strcmp(cadena, "EXIT") == 0) {
+				cerrarServidor(sock, cadena);
 				return 0;
-			}
+			}else {send(sock,&cadena,strlen(cadena),0);}
+
 			break;
 
 		case 2:
 			printf("Introdueix l'operació a calcular \n(format: 'a + b', 'a * b', 'a ^ b', 'v a'): ");
-			fgets(datos.cadena, BUFFER_SIZE, stdin);
-			datos.cadena[strcspn(datos.cadena, "\n")] = '\0';  // Eliminar \n final
+			fgets(cadena, BUFFER_SIZE, stdin);
+			cadena[strcspn(cadena, "\n")] = '\0';  // Eliminar \n final
+			send(sock, &cadena, strnlen(cadena),0);
 			break;
 		case 3:
-			int G1, G2;
+			uint16_t G1, G2;
 			float x[MAX_GRADO], h[MAX_GRADO];
 			
 			printf("Ingrese el grado del primer polinomio (maximo %d): ", MAX_GRADO-1);
 			if(!obtenerPolinomio(x,&G1)){
 				return -1;
 			}
+			else {
+				send(sock, &G1, sizeof(uint16_t),0);
+				enviarPolinomio(sock, x, G1);
+			}
+
     		printf("Ingrese el grado del segundo polinomio (maximo %d): ", MAX_GRADO-1);
 			if(!obtenerPolinomio(h,&G2)){
 				return -1;
+			}else {
+				send(sock, &G2, sizeof(uint16_t),0);
+				enviarPolinomio(sock, h, G2);
 			}
-			
-			formatearPolinomio(x, G1, h, G2, datos.cadena); // Formatear los polinomios en la cadena de datos para eviar al servidor
 
 			break;
 
@@ -178,8 +175,8 @@ int main(int argc, char *argv[]) {
 			break;
 
 		case 5:
-			datos.Menu = 5;
-			strcpy(datos.cadena, ""); // No cal cap dada addicional per a l'historial
+			Menu = 5;
+			strcpy(cadena, ""); // No cal cap dada addicional per a l'historial
 			break;
 
         case 6:
@@ -192,7 +189,6 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 		if (datos.Menu >= 1 && datos.Menu <= 6) {
-			send(sock, &datos, sizeof(datos), 0);  // Enviar dades al servidor
 			recv(sock, buffer, sizeof(buffer), 0);  // Rebre resposta del servidor
 			printf("Resposta del servidor: %s\n", buffer);
 		}

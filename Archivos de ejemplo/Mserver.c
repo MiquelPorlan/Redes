@@ -5,15 +5,10 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <errno.h>
-#include "Calculadora.c"
+//#include "Calculadora.c"
 
 #define DEFAULT_PORT 8080
 #define BUFFER_SIZE 1024
-
-typedef struct{
-	uint16_t Menu;
-	char cadena[BUFFER_SIZE];
-} Data;
 
 
 int main(int argc, char *argv[]) {
@@ -21,10 +16,11 @@ int main(int argc, char *argv[]) {
 	struct sockaddr_in address;
 	int addrlen = sizeof(address);
 
+	uint16_t Menu;
+	char cadena[BUFFER_SIZE];
 	char buffer[BUFFER_SIZE] = {0};
 	char Out[BUFFER_SIZE] = "";
 
-	Data datos;
 	float resultat;
 	char historial[3][BUFFER_SIZE/3] = {"","",""}; // Historial de las últimas 3 operaciones
 
@@ -102,17 +98,18 @@ int main(int argc, char *argv[]) {
 			memset(buffer, 0, BUFFER_SIZE);
 			
 			// Llegir missatge del client
-			if (recv(new_socket, &datos, sizeof(datos), 0) <= 0) {
+			if (recv(new_socket, &Menu, sizeof(uint16_t), 0) <= 0) {
 				printf("Client desconnectat (PID: %d)\n", getpid());
 				break;
 			}
-			switch (datos.Menu)
+			switch (Menu)
 			{
 			case 1: //Recibir missatge del client i mostrar-lo per pantalla
-				printf("Missatge rebut del client (PID: %d): %s\n", getpid(), datos.cadena);
+				recv(new_socket, &cadena, sizeof(cadena), 0);
+				printf("Missatge rebut del client (PID: %d): %s\n", getpid(), cadena);
 				send(new_socket, "datos recibidos ", sizeof("datos recibidos "), 0);
 				break;
-
+/*
 			case 2: // recibir la operacion y devolver el resultado.
 				printf("opcion %d = ", datos.Menu);
 				printf("cadena %s\n", datos.cadena);
@@ -149,7 +146,7 @@ int main(int argc, char *argv[]) {
 				sprintf(Out, "Historial:\n1. %s\n2. %s\n3. %s", historial[0], historial[1], historial[2]);
 				send(new_socket, Out, sizeof(Out), 0);
 				break;
-
+*/
 				
 			default:
 				break;
@@ -165,7 +162,7 @@ int main(int argc, char *argv[]) {
 			
 
 			// Comprovar si el client vol tancar la connexió
-			if (strcmp(datos.cadena, "EXIT") == 0 && (datos.Menu == 1 || datos.Menu == 6)) {
+			if (strcmp(cadena, "EXIT") == 0 && (Menu == 1 || Menu == 6)) {
 				printf("Tancant connexió amb el client (PID: %d)...\n", getpid());
 				send(new_socket, "Connexió tancada\n", strlen("Connexió tancada\n"), 0);
 				break;	// Sortir del bucle
