@@ -25,8 +25,8 @@ void limpiar(){
     #endif
 }
 
-int obtenerPolinomio(int sock, float *p, int *grado) {
-    scanf("%d",grado);
+int obtenerPolinomio(float *p, uint16_t *grado) {
+    scanf("%hd",grado);
     if(*grado<0 || *grado>=MAX_GRADO){
         printf("Error: grado invalido.\n");
         return -1;
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
 			printf("Introdueix l'operació a calcular \n(format: 'a + b', 'a * b', 'a ^ b', 'v a'): ");
 			fgets(cadena, BUFFER_SIZE, stdin);
 			cadena[strcspn(cadena, "\n")] = '\0';  // Eliminar \n final
-			send(sock, &cadena, strnlen(cadena),0);
+			send(sock, &cadena, strlen(cadena),0);
 			break;
 		case 3:
 			uint16_t G1, G2;
@@ -181,14 +181,14 @@ int main(int argc, char *argv[]) {
 
         case 6:
             // Preparar mensaje de cierre de servidor
-			cerrarServidor(sock, &datos);
+			cerrarServidor(sock, cadena);
 			return 0;
             break;
 		default:
 			printf("Opció invàlida\n");
 			break;
 		}
-		if (datos.Menu >= 1 && datos.Menu <= 6) {
+		if (Menu >= 1 && Menu <= 6) {
 			recv(sock, buffer, sizeof(buffer), 0);  // Rebre resposta del servidor
 			printf("Resposta del servidor: %s\n", buffer);
 		}
