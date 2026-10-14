@@ -104,32 +104,19 @@ int Calculadora(char *cadena, float *resultat) {
 
 }
 
-void convolucionDiscreta(float x[],int G1,float h[], int G2,float y[],int G3){
+void convolucionDiscreta(float x[],int G1,float h[], int G2,float y[],uint16_t *G3){
         //sumatorio
         // x[k]*h[n-k]
-        G1+=1;
-        G2+=1;
-    for (int n=0 ; n<G3 ; n++){
-        for (int k=0 ; k<G2 ; k++){
-            if(n - k >= 0 && n - k < G2){
+        int N=G1+1;
+        int M=G2+1;
+        *G3=N+M-1;
+    for (int n=0 ; n<*G3 ; n++){
+        for (int k=0 ; k<N ; k++){
+            if(n - k >= 0 && n - k < M){
                 y[n]+=x[k]*h[n-k];
             }
         }
     }
-    for(int l=0 ; l<G3 ; l++){
-        printf("%g\n",y[l]);
-    }
 }
 
-int productoPolinomios(float *y,int *G3){
-    int G1, G2;
-	float x[MAX_GRADO], h[MAX_GRADO];
-    if(!recuperarpolinomios(cadena, x, &G1, h, &G2)){
-        printf("Error al recuperar los polinomios.\n");
-        return 0;
-    }
-    convolucionDiscreta(x,G1,h,G2,y,*G3);
-
-return 1;
-}
 
