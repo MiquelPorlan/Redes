@@ -10,17 +10,15 @@
 #define DEFAULT_PORT 8080
 #define BUFFER_SIZE 1024
 
-
-	typedef struct{
-		uint16_t Menu;
-		char cadena[BUFFER_SIZE];
-	} Data;
-
 void historialOperaciones(char historial[3][BUFFER_SIZE/3], char *Out) {// Almacenar la operación en el historial
 				for (int i = 2; i > 0; i--) {
 					strcpy(historial[i], historial[i - 1]);
 				}	
 				strcpy(historial[0], Out);
+}
+int recibirPolinomio(int sock, float *x, uint16_t grado){
+	int size = (grado+1)*sizeof(float);
+	recv(sock, x, size, 0);
 }
 
 int main(int argc, char *argv[]) {
@@ -31,7 +29,7 @@ int main(int argc, char *argv[]) {
 	char buffer[BUFFER_SIZE] = {0};
 	char Out[BUFFER_SIZE] = "";
 
-	uint16_t menu;
+	uint16_t Menu;
 	float resultat;
 	char historial[3][BUFFER_SIZE/3] = {"","",""}; // Historial de las últimas 3 operaciones
 
@@ -113,6 +111,7 @@ int main(int argc, char *argv[]) {
 				printf("Client desconnectat (PID: %d)\n", getpid());
 				break;
 			}
+			printf("opcion: %i\n",Menu);
 			switch (Menu)
 			{
 			case 1: //Recibir missatge del client i mostrar-lo per pantalla
@@ -125,7 +124,6 @@ int main(int argc, char *argv[]) {
 			case 2: // recibir la operacion y devolver el resultado.
 				recv(new_socket, &buffer, sizeof(buffer), 0);
 
-				printf("opcion %d = ", menu);
 				printf("cadena %s\n", buffer);
 				sprintf(Out, "%s", buffer);
 				if (Calculadora(buffer, &resultat)) {
@@ -138,32 +136,28 @@ int main(int argc, char *argv[]) {
 				}
 				historialOperaciones(historial, Out); // Almacenar la operación en el historial
 				break;
-				/*
+				
 
 			case 3: // recibir los polinomios formateados y operar con ellos
-				float sol[MAX_GRADO*2-1];
-				int G3;
-				Out[0]='\0';
-				if(productoPolinomios(datos.cadena, sol, &G3)){
-				    for(int i=G3;i>=0;i--){
-						if(i>0){
-							sprintf(Out+strlen(Out), "%gx^%d+",sol[i],i);
-						} else {
-							sprintf(Out+strlen(Out), "%g",sol[i]);
-						}
-    				}
-				}else{
-					printf("Error");
-				    sprintf(Out,"Error en la operación de polinomios");
+				uint16_t G1, G2, G3;
+				float x[MAX_GRADO]={0}, h[MAX_GRADO]={0}, sol[2*MAX_GRADO-1]={0};
+				Out[0]='\0'; // vaciar cadena de salida
+				recv(new_socket, &G1, sizeof(G1),0);
+				recibirPolinomio(new_socket,x,G1);
+				recv(new_socket, &G2, sizeof(G2),0);
+				recibirPolinomio(new_socket,h,G2);
+
+				convolucionDiscreta(x,G1,h,G2,sol,&G3);
+				sprintf(Out + strlen(Out), "%g ",sol[0]);
+				for(int i=1;i<G3;i++){
+				sprintf(Out + strlen(Out), "+ %g*(x^%d)",sol[i],i);
 				}
 				
 				send(new_socket, Out, sizeof(Out), 0);
-				
 				// Almacenar la operación en el historial
 				historialOperaciones(historial, Out);
 				break;
 				
-				*/
 			case 5: // enviar el historial de operaciones
 				sprintf(Out, "Historial:\n1. %s\n2. %s\n3. %s", historial[0], historial[1], historial[2]);
 				send(new_socket, Out, sizeof(Out), 0);
@@ -183,7 +177,7 @@ int main(int argc, char *argv[]) {
 			
 
 			// Comprovar si el client vol tancar la connexió
-			if (strcmp(datos.cadena, "EXIT") == 0 && (datos.Menu == 1 || datos.Menu == 6)) {
+			if (strcmp(buffer, "EXIT") == 0 && (Menu == 1 || Menu == 6)) {
 				printf("Tancant connexió amb el client (PID: %d)...\n", getpid());
 				send(new_socket, "Connexió tancada\n", strlen("Connexió tancada\n"), 0);
 				break;	// Sortir del bucle
