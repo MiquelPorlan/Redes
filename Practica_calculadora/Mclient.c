@@ -7,7 +7,7 @@
 
 #define DEFAULT_PORT 8080
 #define DEFAULT_DOMAIN "localhost"
-#define BUFFER_SIZE 1024*4
+#define BUFFER_SIZE 1024
 #define MAX_GRADO 5
 
 void cerrarServidor(int sock, char *cadena) {
