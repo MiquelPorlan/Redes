@@ -94,6 +94,7 @@ int Calculadora(char *cadena, float *resultat) {
                 break;
             default:
                 printf("Operacio no reconeguda.\n");
+                return 0;
         }
         *resultat = res;
         return 1;
