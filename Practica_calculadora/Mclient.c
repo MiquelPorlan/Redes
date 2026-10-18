@@ -71,26 +71,15 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	// Crear el socket
-	// Afegiu comentari explicant els arguments, i de quines altres opcions hi ha
-	// per al segon d'ells (ara SOCK_STREAM)
-	
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		printf("\nError en crear el socket\n");
 		return -1;
 	}
 
-	// Afegiu comentari sobre què són aquests 3 paràmetres,
-	// per què s'utilitzen els valors que hi ha,
-	// i per què s'utilitza htons()
-
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(port);
 	inet_pton(AF_INET, domini, &serv_addr.sin_addr);	// Convertir adreça IPv4 a binari
    
-
-	// Connectar amb el servidor
-	// Afegiu comentari explicant els arguments
 	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
 		printf("\nConnexio fallida\n");
 		return -1;
@@ -100,11 +89,6 @@ int main(int argc, char *argv[]) {
 
 	while (1) {
 		memset(buffer, 0, sizeof(buffer)); // Netegem el buffer
-		// Menú principal
-		// Cal que implementeu un petit servei remot amb almenys 4 funcionalitats noves
-		// Definiu vosaltres mateixos les dades a enviar (demanar en el client, i analitzar al servidor) i rebre
-		// Si per donar més sentit al servei cal alguna opció més, la podeu afegir
-		// Deixeu l'opció 1 com a Enviar missatge i l'última per Sortir
 
 		printf("Menú principal:\n");
 		printf("1. Enviar missatge\n");
