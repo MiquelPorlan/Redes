@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 
         printf("Nou client connectat. Creant procés fill...\n");
 
-        // --- APLICAR CONCURRENCIA MEDIANTE FORK ---
+        //  APLICAR CONCURRENCIA MEDIANTE FORK 
         pid_t pid = fork();
         
         if (pid < 0) {
@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
         }
         
         if (pid == 0) {
-            // --- PROCESO HIJO ---
+            //  PROCESO HIJO 
             // El hijo no necesita el socket principal de escucha
             close(sock); 
 
