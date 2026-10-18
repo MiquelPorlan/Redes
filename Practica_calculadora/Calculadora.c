@@ -120,4 +120,28 @@ void convolucionDiscreta(float x[],int G1,float h[], int G2,float y[],uint16_t *
     }
 }
 
+float CalcularTallEixX(float a, float b, float c, float *tall_x1, float *tall_x2) {
+    if (a == 0.0f) {
+        if (b == 0.0f) {
+            return 0;
+        }
 
+        *tall_x1 = -c / b;
+        return 1;
+    }
+
+    float arrel = b*b - 4*a*c;
+
+    if (arrel > 0) {
+        *tall_x1 = (-b + sqrt(arrel)) / (2*a);
+        *tall_x2 = (-b - sqrt(arrel)) / (2*a);
+        return 2;
+    } 
+    else if (arrel == 0) {
+        *tall_x1 = -b / (2*a);
+        return 1;
+    } 
+    else {
+        return 0;
+    }
+}

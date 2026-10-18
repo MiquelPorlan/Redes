@@ -2,161 +2,70 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_GRADO 5
-#define BUFFER_SIZE 1024
-
-int recuperarpolinomios(char *cadena, float *x, int *G1, float *h, int *G2){
-    char *token = strtok(cadena, " \t\r\n"); // obtenemos el primer token
-
-    if (token != NULL) { //G1 y G2
-        *G1 = atoi(token); // Convertimos el primer token a entero
-        token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
+int llegirCoficientsIGrau(float *a, float *b, float *c) {
        
-        *G2 = atoi(token); // Convertimos el segundo token a entero
-        token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
-    }
-    for (int i = 0; i <= *G1; i++) { // Recorrer hasta G1 para llenar el array x
-        if (token != NULL) {
-            x[i] = atof(token); // Convertimos el token a float y lo almacenamos en x
-            token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
+    char segon_grau[100];
+
+    int grau; // si existeix a, retornara 2. en cas contrari retornara 1. si no funcina 0.
+    float termeA, termeB, termeC; // Variables per guardar els termes de la funció
+
+    *a = 0.0f;
+    *b = 0.0f;
+    *c = 0.0f;
+
+    printf("Introdueix una funció en la forma explicita (ax^2+bx+c, sense espais i amb termes a, b i c visibles): ");
+    fgets(segon_grau, sizeof(segon_grau), stdin);
+    segon_grau[strcspn(segon_grau, "\n")] = '\0'; //Neteja 
+
+    char *posicio_x2 = strstr(segon_grau, "x^2"); // Busca fins x^2
+
+    if (posicio_x2 == NULL) {
+              
+        char *posicio_x = strchr(segon_grau, 'x'); // Busca la x en el segon grau
+
+        if (posicio_x == NULL) {
+            grau = 0; // No s'ha trobat la x
+        } 
+
+        else {
+            grau = 1; // S'ha trobat la x, és de primer grau
+
+            termeB = strtof(segon_grau, NULL); // Converteix el que hi ha abans de la x a float
+            termeC = strtof(posicio_x + 1, NULL); // Converteix el que hi ha després de la x a float
+            
+            *a = 0;
+            *b = termeB;
+            *c = termeC;
         }
     }
 
-    for (int i = 0; i <= *G2; i++) { // Recorrer hasta G2 para llenar el array h
-        if (token != NULL) {
-            h[i] = atof(token); // Convertimos el token a float y lo almacenamos en h
-            token = strtok(NULL, " \t\r\n"); // Obtenemos el siguiente token
+    else {
+        char *posicio_x = strchr(posicio_x2 + 3, 'x');
+
+        if (posicio_x == NULL) {
+            grau = 0;
+        } else {
+            grau = (termeA == 0.0f) ? 1 : 2; // Si a és 0, és de primer grau; si no, és de segon grau
+
+            termeA = strtof(segon_grau, NULL); // Converteix el que hi ha abans de x^2 a float
+            termeB = strtof(posicio_x2 + 3, NULL); // Converteix el que hi ha després de x^2 a float
+            termeC = strtof(posicio_x + 1, NULL); // Converteix el que hi ha després de la segona x a float
+
+            *a = termeA;
+            *b = termeB;
+            *c = termeC;
         }
     }
-    return 0;
+
+    return grau;
 }
-
-void convolucionDiscreta(float x[],int G1,float h[], int G2,float y[],int *G3){
-    //sumatorio
-    // x[k]*h[n-k]
-    int N = G1 + 1; // Número de elementos de x (grado + 1)
-    int M = G2 + 1; // Número de elementos de h (grado + 1)
-    *G3 = N+M-1;
-    for (int i = 0; i < *G3; i++) {
-        y[i] = 0.0f;
-    }
-    for (int n=0 ; n<*G3 ; n++){
-        for (int k=0 ; k<N ; k++){
-            if(n - k >= 0 && n - k < M){
-                y[n]+=x[k]*h[n-k];
-            }
-        }
-    }
-}
-
-void productoPolinomios(char *cadena, float *y,int *G3){
-    int G1, G2;
-	float x[MAX_GRADO], h[MAX_GRADO];
-    recuperarpolinomios(cadena, x, &G1, h, &G2);
-    convolucionDiscreta(x,G1,h,G2,y,G3);
-}
-
-/*void productoPolinomios(char *cadena, float *y, int *G3){
-    int G1, G2;
-    float x[MAX_GRADO] = {0}, h[MAX_GRADO] = {0};
-    
-    // Creamos una copia local para que strtok no destruya la cadena original
-    char cadena_copia[BUFFER_SIZE];
-    strcpy(cadena_copia, cadena);
-    
-    recuperarpolinomios(cadena_copia, x, &G1, h, &G2);
-    convolucionDiscreta(x, G1, h, G2, y, G3);
-}*/
-
-int obtenerPolinomio(float *p, int *grado) {
-    scanf("%d",grado);
-    if(*grado<0 || *grado>=MAX_GRADO){
-        printf("Error: grado invalido.\n");
-        return -1;
-    }
-    for(int i=*grado;i>=0;i--){
-        printf("Ingrese el coeficiente para x^%d: ",i);
-        scanf("%f",&p[i]);
-    }
-    return 1;
-}
-
-void formatearPolinomios(float *x, int G1, float *h, int G2, char *cadena) {
-	sprintf(cadena,"%d %d", G1, G2);
-	for(int i=0;i<=G1;i++){
-		sprintf(cadena + strlen(cadena), " %g", x[i]);
-	}
-	for(int i=0;i<=G2;i++){
-		sprintf(cadena + strlen(cadena), " %g", h[i]);
-	}
-}
-
-/*int main(){
-    int G1, G2, G3;
-    float x[MAX_GRADO] = {0}, h[MAX_GRADO]= {0},y[2*MAX_GRADO-1]= {0};
-    char cadena [BUFFER_SIZE];
-    printf("Ingrese el grado del primer polinomio (maximo %d): ", MAX_GRADO-1);
-    obtenerPolinomio(x, &G1);
-    printf("Ingrese el grado del segundo polinomio (maximo %d): ", MAX_GRADO-1);
-    obtenerPolinomio(h, &G2);
-
-    formatearPolinomios(x,G1,h,G2,cadena);
-
-
-    printf("Cadena formateada: !%s!\n", cadena);
-    recuperarpolinomios(cadena,x,&G1,h,&G2);
-    printf("!%i ",G1);
-    printf("%i",G2);    
-
-    for (int i=0;i<G1+1;i++){
-        printf(" %g",x[i]);
-    }
-    for (int i=0;i<G2+1;i++){
-        printf(" %g",h[i]);
-    }
-
-    productoPolinomios(cadena,y,&G3);
-    printf("! %d\n",G3);
-    for(int i=0 ; i<G3 ; i++){
-        printf("%g",y[i]);
-    }
-}*/
 
 int main(){
-    int G1, G2, G3;
-    float x[MAX_GRADO] = {0}, h[MAX_GRADO] = {0}, y[2 * MAX_GRADO - 1] = {0};
-    char cadena[BUFFER_SIZE];
-    
-    printf("Ingrese el grado del primer polinomio (maximo %d): ", MAX_GRADO - 1);
-    if (obtenerPolinomio(x, &G1) == -1) return 1;
-    
-    printf("Ingrese el grado del segundo polinomio (maximo %d): ", MAX_GRADO - 1);
-    if (obtenerPolinomio(h, &G2) == -1) return 1;
+int grado;
+float a,b,c;
+grado = llegirCoficientsIGrau(&a,&b,&c); 
+printf("%d %g %g %g",grado,a,b,c);
 
-    // 1. Formateamos
-    formatearPolinomios(x, G1, h, G2, cadena);  
-    printf("\n[DEBUG] Cadena generada: %s\n", cadena);
-
-    // 2. Limpiamos las variables para verificar que se recuperan bien
-    int G1_rec = 0, G2_rec = 0;
-    float x_rec[MAX_GRADO] = {0}, h_rec[MAX_GRADO] = {0};
-    
-    
-    printf("[DEBUG] G1 recuperado: %d, G2 recuperado: %d\n", G1_rec, G2_rec);
-
-    // 3. Calculamos la convolución
-    productoPolinomios(cadena, y, &G3);
-    
-    printf("[DEBUG] G3 calculado (número de elementos): %d\n", G3);
-    printf("Coeficientes resultantes (y):");
-    for(int i = 0; i < G3; i++){
-        printf(" y[%d]=%g", i, y[i]);
-    }
-    printf("\n");
-    
-    return 0;
 }
-
-
 
 

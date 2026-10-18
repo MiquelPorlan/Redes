@@ -168,7 +168,29 @@ int main(int argc, char *argv[]) {
                         historialOperaciones(historial, Out);
                     }
                     break;
+                case 4:
+                    int grado;
+                    float a,b,c;
+                    float x1,x2;
+                    int erro;
+
+                    recv(new_socket, buffer, sizeof(buffer), 0);
+                    sscanf(buffer,"%d;%f;%f;%f",&grado,&a,&b,&c);
+                    if (!CalcularTallEixX(a,b,c,&x1,&x2)){
+                        if (grado == 2){
+                            sprintf(Out, "puntos de corte: \nx1:%.2g\nx2:%.2g\ny:%.2g", x1, x2, c);
+                        }    
+                        if (grado == 1){
+                           sprintf(Out, "puntos de corte: \nx1:%.2g\ny:%.2g", x1, c);
+                        }    
+                    }else{
+                        sprintf(Out, "puntos de corte: \ny:%.2g", c);
+                    }
                     
+
+                    send(new_socket, Out, sizeof(Out), 0);
+                    break;
+
                 case 5: 
                     sprintf(Out, "Historial:\n1. %s\n2. %s\n3. %s", historial[0], historial[1], historial[2]);
                     send(new_socket, Out, sizeof(Out), 0);
