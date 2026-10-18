@@ -5,188 +5,198 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "Calculadora.c"
 
 #define DEFAULT_PORT 8080
 #define BUFFER_SIZE 1024
 
-void historialOperaciones(char historial[3][BUFFER_SIZE/3], char *Out) {// Almacenar la operación en el historial
-				for (int i = 2; i > 0; i--) {
-					strcpy(historial[i], historial[i - 1]);
-				}	
-				strcpy(historial[0], Out);
+void historialOperaciones(char historial[3][BUFFER_SIZE/3], char *Out) {
+    for (int i = 2; i > 0; i--) {
+        strcpy(historial[i], historial[i - 1]);
+    }   
+    strcpy(historial[0], Out);
 }
+
 int recibirPolinomio(int sock, float *x, uint16_t grado){
-	int size = (grado+1)*sizeof(float);
-	recv(sock, x, size, 0);
+    int size = (grado+1)*sizeof(float);
+    recv(sock, x, size, 0);
+}
+
+// Función opcional para limpiar procesos huérfanos (sigaction / waitpid)
+void sigchld_handler(int s) {
+    while(waitpid(-1, NULL, WNOHANG) > 0);
 }
 
 int main(int argc, char *argv[]) {
-	int sock, new_socket;
-	struct sockaddr_in address;
-	int addrlen = sizeof(address);
+    int sock, new_socket;
+    struct sockaddr_in address;
+    int addrlen = sizeof(address);
 
-	char buffer[BUFFER_SIZE] = {0};
-	char Out[BUFFER_SIZE] = "";
+    int port;
+    char *endptr;
 
-	uint16_t Menu;
-	float resultat;
-	char historial[3][BUFFER_SIZE/3] = {"","",""}; // Historial de las últimas 3 operaciones
+    if (argc == 1) {
+        port = DEFAULT_PORT;
+        printf("Cap port indicat. Utilitzant valor per defecte: %d\n", port);
+    }
+    else if (argc == 2) {
+        errno = 0;
+        port = strtol(argv[1], &endptr, 10);
+        if (errno != 0 || *endptr != '\0' || port < 1 || port > 65535) {
+            fprintf(stderr, "Error: el port ha de ser un enter entre 1 i 65535.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    else {
+        fprintf(stderr, "Ús: %s [port]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
 
-	int port;
-	char *endptr;
+    // Crear el socket principal de escucha
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("Error en crear el socket");
+        exit(EXIT_FAILURE);
+    }
 
-	if (argc == 1) {
-		// Cap argument -> port per defecte
-		port = DEFAULT_PORT;
-		printf("Cap port indicat. Utilitzant valor per defecte: %d\n", port);
-	}
-	else if (argc == 2) {
-		errno = 0;
-		port = strtol(argv[1], &endptr, 10);
+    // Evitar errores de "Address already in use" al reiniciar rápido
+    int opt = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-		// Comprovacions
-		if (errno != 0 || *endptr != '\0' || port < 1 || port > 65535) {
-			fprintf(stderr, "Error: el port ha de ser un enter entre 1 i 65535.\n");
-			exit(EXIT_FAILURE);
-		}
-	}
-	else {
-		fprintf(stderr, "Ús: %s [port]\n", argv[0]);
-		exit(EXIT_FAILURE);
-	}
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = htonl(INADDR_ANY);
+    address.sin_port = htons(port);
 
+    if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("Error en fer el bind");
+        close(sock);
+        exit(EXIT_FAILURE);
+    }
 
-	// Crear el socket
-	// Afegiu comentari explicant els arguments
-	
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-		perror("Error en crear el socket");
-		exit(EXIT_FAILURE);
-	}
+    if (listen(sock, 3) < 0) {
+        perror("Error en escoltar");
+        close(sock);
+        exit(EXIT_FAILURE);
+    }
 
+    // Configurar para evitar procesos zombis al finalizar los hijos
+    struct sa;
+    // O simplemente usar signal para ignorar o limpiar procesos hijos finalizados
+    signal(SIGCHLD, SIG_IGN); 
 
-	// Afegiu comentari explicant què són aquests 3 paràmetres,
-	// per què s'utilitzen htons() i htonl(),
-	// i per què s'utilitzen els valors que hi ha
+    printf("Servidor concurrent en funcionament, esperant connexions...\n");
 
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = htonl(INADDR_ANY);	// Per a INADDR_ANY no faria falta htonl(), però li posem per coherència
-	address.sin_port = htons(port);
+    while (1) {
+        // Acceptar connexió del client
+        if ((new_socket = accept(sock, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0) {
+            perror("Error en acceptar la connexió");
+            continue; // Si falla un accept, intentem amb el següent
+        }
 
-	// Enllaçar el socket al port especificat
-	// Afegiu comentari explicant els arguments
-	if (bind(sock, (struct sockaddr *)&address, sizeof(address)) < 0) {
-		perror("Error en fer el bind");
-		close(sock);
-		exit(EXIT_FAILURE);
-	}
+        printf("Nou client connectat. Creant procés fill...\n");
 
-	// Escoltar connexions entrants
-	// Afegiu comentari explicant els arguments
-	
-	if (listen(sock, 3) < 0) {
-		perror("Error en escoltar");
-		close(sock);
-		exit(EXIT_FAILURE);
-	}
+        // --- APLICAR CONCURRENCIA MEDIANTE FORK ---
+        pid_t pid = fork();
+        
+        if (pid < 0) {
+            perror("Error al crear el fork");
+            close(new_socket);
+            exit(EXIT_FAILURE);
+        }
+        
+        if (pid == 0) {
+            // --- PROCESO HIJO ---
+            // El hijo no necesita el socket principal de escucha
+            close(sock); 
 
-	printf("Servidor en funcionament, esperant connexions...\n");
+            char buffer[BUFFER_SIZE] = {0};
+            char Out[BUFFER_SIZE] = "";
+            uint16_t Menu;
+            float resultat;
+            char historial[3][BUFFER_SIZE/3] = {"","",""}; // Historial independiente por cliente (o compartido si usas memoria compartida, por simplicidad local al cliente)
 
-	while (1) {
-		// Acceptar connexions de clients
-		// Afegiu comentari explicant els arguments i per què hi ha i cal new_socket si ja tenim sock
-		
-		if ((new_socket = accept(sock, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0) {
-			perror("Error en acceptar la connexió");
-			close(sock);
-			exit(EXIT_FAILURE);
-		}
+            while (1) {
+                memset(buffer, 0, BUFFER_SIZE);
+                
+                if (recv(new_socket, &Menu, sizeof(Menu), 0) <= 0) {
+                    printf("Client desconnectat (PID: %d)\n", getpid());
+                    break;
+                }
+                
+                printf("Opcio rebuda del client (PID: %d): %i\n", getpid(), Menu);
+                
+                switch (Menu) {
+                case 1: 
+                    recv(new_socket, &buffer, sizeof(buffer), 0);
+                    printf("Missatge rebut (PID: %d): %s\n", getpid(), buffer);
+                    sprintf(Out, "%s. Mensaje recibido", buffer);
+                    send(new_socket, Out, sizeof(Out), 0);
+                    break;
 
-		 while (1) {
-			memset(buffer, 0, BUFFER_SIZE);
-			
-			// Llegir missatge del client
-			if (recv(new_socket, &Menu, sizeof(Menu), 0) <= 0) {
-				printf("Client desconnectat (PID: %d)\n", getpid());
-				break;
-			}
-			printf("opcion: %i\n",Menu);
-			switch (Menu)
-			{
-			case 1: //Recibir missatge del client i mostrar-lo per pantalla
-				recv(new_socket, &buffer, sizeof(buffer), 0);
+                case 2: 
+                    recv(new_socket, &buffer, sizeof(buffer), 0);
+                    sprintf(Out, "%s", buffer);
+                    if (Calculadora(buffer, &resultat)) {
+                        printf("Resultat: %.2f (PID: %d)\n", resultat, getpid());
+                        sprintf(Out, "%s = %.2f", Out, resultat);
+                        send(new_socket, Out, sizeof(Out), 0);
+                    } else {
+                        send(new_socket, "Error en la operación\n", strlen("Error en la operación\n"), 0);
+                        sprintf(Out, "%s = Error", Out);
+                    }
+                    historialOperaciones(historial, Out);
+                    break;
+                    
+                case 3: 
+                    {
+                        uint16_t G1, G2, G3;
+                        float x[MAX_GRADO]={0}, h[MAX_GRADO]={0}, sol[2*MAX_GRADO-1]={0};
+                        Out[0]='\0';
+                        recv(new_socket, &G1, sizeof(G1), 0);
+                        recibirPolinomio(new_socket, x, G1);
+                        recv(new_socket, &G2, sizeof(G2), 0);
+                        recibirPolinomio(new_socket, h, G2);
 
-				printf("Missatge rebut del client (PID: %d): %s\n", getpid(), buffer);
-				send(new_socket, "datos recibidos ", sizeof("datos recibidos "), 0);
-				break;
+                        convolucionDiscreta(x, G1, h, G2, sol, &G3);
+                        sprintf(Out + strlen(Out), "%g ", sol[0]);
+                        for(int i=1; i<G3; i++){
+                            sprintf(Out + strlen(Out), "+ %g*(x^%d)", sol[i], i);
+                        }
+                        
+                        send(new_socket, Out, sizeof(Out), 0);
+                        historialOperaciones(historial, Out);
+                    }
+                    break;
+                    
+                case 5: 
+                    sprintf(Out, "Historial:\n1. %s\n2. %s\n3. %s", historial[0], historial[1], historial[2]);
+                    send(new_socket, Out, sizeof(Out), 0);
+                    break;
+                    
+                default:
+                    break;
+                }
 
-			case 2: // recibir la operacion y devolver el resultado.
-				recv(new_socket, &buffer, sizeof(buffer), 0);
+                if ((strcmp(buffer, "EXIT") == 0 && Menu == 1) || Menu == 6) {
+                    printf("Tancant connexió amb el client (PID: %d)...\n", getpid());
+                    send(new_socket, "Connexió tancada\n", strlen("Connexió tancada\n"), 0);
+                    break;
+                }
+            }
 
-				printf("cadena %s\n", buffer);
-				sprintf(Out, "%s", buffer);
-				if (Calculadora(buffer, &resultat)) {
-					printf("%.2f (PID: %d)\n", resultat, getpid());
-					sprintf(Out, "%s = %.2f", Out, resultat); //formatea el resultado para enviarlo como cadena
-					send(new_socket, Out, sizeof(Out), 0);
-				} else {
-					send(new_socket, "Error en la operación\n", strlen("Error en la operación\n"), 0);
-					sprintf(Out, "%s = Error", Out);
-				}
-				historialOperaciones(historial, Out); // Almacenar la operación en el historial
-				break;
-				
+            close(new_socket); // Tancar el socket del client en el fill
+            exit(EXIT_SUCCESS);      // Terminar el proceso hijo de forma segura
+        } 
+        else {
+            // --- PROCESO PADRE ---
+            // El padre cierra su copia del new_socket porque lo gestionará el hijo,
+            // y vuelve inmediatamente a escuchar nuevas conexiones en accept().
+            close(new_socket);
+        }
+    }
 
-			case 3: // recibir los polinomios formateados y operar con ellos
-				uint16_t G1, G2, G3;
-				float x[MAX_GRADO]={0}, h[MAX_GRADO]={0}, sol[2*MAX_GRADO-1]={0};
-				Out[0]='\0'; // vaciar cadena de salida
-				recv(new_socket, &G1, sizeof(G1),0);
-				recibirPolinomio(new_socket,x,G1);
-				recv(new_socket, &G2, sizeof(G2),0);
-				recibirPolinomio(new_socket,h,G2);
-
-				convolucionDiscreta(x,G1,h,G2,sol,&G3);
-				sprintf(Out + strlen(Out), "%g ",sol[0]);
-				for(int i=1;i<G3;i++){
-				sprintf(Out + strlen(Out), "+ %g*(x^%d)",sol[i],i);
-				}
-				
-				send(new_socket, Out, sizeof(Out), 0);
-				// Almacenar la operación en el historial
-				historialOperaciones(historial, Out);
-				break;
-				
-			case 5: // enviar el historial de operaciones
-				sprintf(Out, "Historial:\n1. %s\n2. %s\n3. %s", historial[0], historial[1], historial[2]);
-				send(new_socket, Out, sizeof(Out), 0);
-				break;
-				
-			default:
-				break;
-			}
-
-
-			
-			
-			// A continuació hi ha el codi corresponent a l'opció d'Enviar missatge, amb el retorn d'una cadena fixa,
-			// i la de Sortida de la connexió/bucle si és el cas.
-			// Modifiqueu la cadena de retorn per tal que sigui la que diu l'enunciat.
-
-			
-
-			// Comprovar si el client vol tancar la connexió
-			if (strcmp(buffer, "EXIT") == 0 && (Menu == 1 || Menu == 6)) {
-				printf("Tancant connexió amb el client (PID: %d)...\n", getpid());
-				send(new_socket, "Connexió tancada\n", strlen("Connexió tancada\n"), 0);
-				break;	// Sortir del bucle
-			}
-		}
-
-		close(new_socket); // Tancar la connexió amb el client
-	}
-
-	close(sock);
-	return 0;
+    close(sock);
+    return 0;
 }
+
