@@ -127,12 +127,3 @@ pid_t fork(void); Crear un nuevo proceso (proceso hijo) duplicando el proceso ac
 Devuelve: <0: Hubo un error al crear el proceso.  
            0: Se retorna en el proceso hijo.
           >0: Se retorna en el proceso padre (devuelve el PID del nuevo proceso creado).
-
-
-
-
-
-
-
-
-  

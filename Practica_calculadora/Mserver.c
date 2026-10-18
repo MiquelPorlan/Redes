@@ -1,4 +1,8 @@
-// server.c
+/* 2b 
+Miquel Porlan
+Karla suquia
+Eduard Muñoz
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
