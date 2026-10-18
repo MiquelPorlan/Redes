@@ -10,13 +10,6 @@
 #define BUFFER_SIZE 1024
 #define MAX_GRADO 5
 
-void cerrarServidor(int sock, char *cadena) {
-	strcpy(cadena, "EXIT"); // Preparar mensaje de cierre de servidor
-	send(sock, &cadena, strlen(cadena), 0);  // Enviar missatge de tancament al servidor
-	close(sock);
-	printf("Connexió tancada. Sortint del client...\n");
-}
-
 void limpiar(){
     #ifdef _WIN32
         system("cls");
@@ -127,18 +120,13 @@ int main(int argc, char *argv[]) {
 		limpiar();
 		while (getchar() != '\n');  // buida el buffer fins al salt de línia
 
-		switch (Menu)
-		{
+		switch (Menu){
 		case 1:
             // Llegir missatge del client
 			printf("Introdueix el missatge a enviar ('EXIT' per tancar el servidor i sortir): ");
 			fgets(cadena, BUFFER_SIZE, stdin);
 			cadena[strcspn(cadena, "\n")] = '\0';  // Eliminar \n final
-			if (strcmp(cadena, "EXIT") == 0) {
-				cerrarServidor(sock, cadena);
-				return 0;
-			}else {send(sock,&cadena,strlen(cadena),0);}
-
+			send(sock,&cadena,strlen(cadena),0);
 			break;
 
 		case 2:
@@ -180,20 +168,21 @@ int main(int argc, char *argv[]) {
 			break;
 
         case 6:
-            // Preparar mensaje de cierre de servidor
-			cerrarServidor(sock, cadena);
-			return 0;
-            break;
+			break;
 		default:
 			printf("Opció invàlida\n");
 			break;
 		}
-		if (Menu >= 1 && Menu <= 6) {
+
+		if (Menu >= 1 && Menu <= 6){
 			recv(sock, buffer, sizeof(buffer), 0);  // Rebre resposta del servidor
 			printf("Resposta del servidor: %s\n", buffer);
+			if ((strcmp(cadena, "EXIT") == 0 && Menu == 1) || Menu == 6 ){
+				recv(sock, buffer, sizeof(buffer), 0);  // Rebre resposta del servidor
+				printf("%s", buffer);
+				break;
+			}
 		}
-
-	
 	}
 
 	close(sock);
