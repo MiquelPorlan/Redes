@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
             char Out[BUFFER_SIZE] = "";
             uint16_t Menu;
             float resultat;
-            char historial[3][BUFFER_SIZE/3] = {"","",""}; // Historial independiente por cliente (o compartido si usas memoria compartida, por simplicidad local al cliente)
+            char historial[3][BUFFER_SIZE/3] = {"","",""}; 
 
             while (1) {
                 memset(buffer, 0, BUFFER_SIZE);
