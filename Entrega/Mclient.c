@@ -1,4 +1,4 @@
-/* 2b 
+/* b6
 Miquel Porlan
 Karla suquia
 Eduard Muñoz
