@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
+/*
 int llegirCoficientsIGrau(float *a, float *b, float *c) {
        
     char segon_grau[100];
@@ -67,5 +67,16 @@ grado = llegirCoficientsIGrau(&a,&b,&c);
 printf("%d %g %g %g",grado,a,b,c);
 
 }
+*/
 
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    const char *str = "1234567890";
+    char *endptr;
+    long num = strtol(str, &endptr, 10);
+    printf("El número convertido es: %ld\n", num);
+    return 0;
+}
 

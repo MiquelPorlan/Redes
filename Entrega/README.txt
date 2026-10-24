@@ -127,3 +127,13 @@ pid_t fork(void); Crear un nuevo proceso (proceso hijo) duplicando el proceso ac
 Devuelve: <0: Hubo un error al crear el proceso.  
            0: Se retorna en el proceso hijo.
           >0: Se retorna en el proceso padre (devuelve el PID del nuevo proceso creado).
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void (*signal(int sig, void (*func)(int)))(int); permite a un programa controlar cómo reacciona ante una señal de interrupción o un evento asíncrono enviado por el sistema operativo o por la propia función
+  sig: Es el número o la macro de la señal
+      ---> SIGINT para interrupción por teclado como Ctrl + C, 
+      ---> SIGABRT para un aborto
+      ---> SIGTERM para terminación.
+      ---> SIGCHLD da fin a un proceso hijo
+  func: Define la acción a tomar
+      --->SIG_DFL acción predeterminada del sistema
+      --->SIG_IGN ignorar la señal
